@@ -35,8 +35,8 @@ window.Metricas = (() => {
       ${d.account?.username ? `<p class="muted" style="margin-bottom:14px">Conta: <b>@${esc(d.account.username)}</b></p>` : ""}
       <div class="grade grade-3" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
         ${kpi("Seguidores", num(d.account?.followers), "Total hoje")}
-        ${kpi("Novos seguidores", num(soma(seguidoresDia)), "Últimos 15 dias")}
-        ${kpi("Alcance", num(soma(alcanceDia)), "Últimos 15 dias")}
+        ${seguidoresDia.length ? kpi("Novos seguidores", num(soma(seguidoresDia)), "Últimos 15 dias") : kpi("Novos seguidores", "indisponível", "Precisa da permissão de métricas do Meta")}
+        ${alcanceDia.length ? kpi("Alcance", num(soma(alcanceDia)), "Últimos 15 dias") : kpi("Alcance", "indisponível", "Precisa da permissão de métricas do Meta")}
         ${kpi("Leads captados", num(soma(leads)), "Últimos 15 dias")}
       </div>
       <div class="grade grade-2" style="margin-top:16px">
@@ -54,7 +54,7 @@ window.Metricas = (() => {
   // Gráfico de barras simples com dica no hover
   function cartaoGrafico(titulo, serie) {
     if (!serie?.length) {
-      return `<div class="card"><h3>${titulo}</h3><p class="muted" style="margin-top:10px">Sem dados ainda.</p></div>`;
+      return `<div class="card"><h3>${titulo}</h3><p class="muted" style="margin-top:10px">Sem dados. Se continuar assim, falta a permissão de métricas (instagram_manage_insights) no app do Meta.</p></div>`;
     }
     const W = 300, H = 150, gap = 3;
     const max = Math.max(1, ...serie.map((p) => p.value));
