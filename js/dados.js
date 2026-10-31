@@ -282,8 +282,100 @@ window.Dados = (() => {
     }
   }
 
+  // =================================================================
+  // CALENDÁRIO DE CONTEÚDO (tabela cal_posts)
+  // =================================================================
+  const CHAVE_CAL_LOCAL = "painel_calendario_teste";
+
+  async function listarPosts(inicio, fim) {
+    if (!usaSupabase()) {
+      return ler(CHAVE_CAL_LOCAL, []).filter((p) => p.data >= inicio && p.data <= fim);
+    }
+    try {
+      const { data, error } = await sb.from("cal_posts").select("*")
+        .gte("data", inicio).lte("data", fim).order("data").order("created_at");
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.warn("Não deu pra listar o calendário:", e);
+      return [];
+    }
+  }
+
+  async function salvarPost(row) {
+    if (!usaSupabase()) {
+      const lista = ler(CHAVE_CAL_LOCAL, []);
+      const novo = { ...row, id: row.id || cryptoId() };
+      const i = lista.findIndex((p) => p.id === novo.id);
+      if (i >= 0) lista[i] = novo; else lista.push(novo);
+      if (!gravar(CHAVE_CAL_LOCAL, lista)) return { erro: "Não deu pra salvar neste navegador." };
+      return { ok: true, row: novo, local: true };
+    }
+    try {
+      const corpo = { ...row };
+      if (!corpo.id) delete corpo.id;
+      delete corpo.created_at;
+      delete corpo.updated_at;
+      const { data, error } = await sb.from("cal_posts").upsert(corpo).select().single();
+      if (error) throw error;
+      return { ok: true, row: data };
+    } catch (e) {
+      console.warn(e);
+      return { erro: "Não foi possível salvar no calendário. Confira se o 07_calendario_e_leads.sql foi rodado." };
+    }
+  }
+
+  async function apagarPost(id) {
+    if (!usaSupabase()) {
+      gravar(CHAVE_CAL_LOCAL, ler(CHAVE_CAL_LOCAL, []).filter((p) => p.id !== id));
+      return { ok: true };
+    }
+    try {
+      const { error } = await sb.from("cal_posts").delete().eq("id", id);
+      if (error) throw error;
+      return { ok: true };
+    } catch {
+      return { erro: "Não foi possível apagar agora." };
+    }
+  }
+
+  // =================================================================
+  // LEADS (pessoas que interagiram)
+  // =================================================================
+  async function listarLeads() {
+    if (!usaSupabase()) return [];
+    let todos = [];
+    try {
+      for (let de = 0; ; de += 1000) {
+        const { data, error } = await sb.from("ig_leads").select("*")
+          .order("updated_at", { ascending: false }).range(de, de + 999);
+        if (error) throw error;
+        todos = todos.concat(data || []);
+        if (!data || data.length < 1000) break;
+      }
+    } catch (e) {
+      console.warn("Não deu pra listar os leads:", e);
+    }
+    return todos;
+  }
+
+  // Apaga TODOS os dados de uma pessoa (pedido de exclusão da LGPD)
+  async function excluirLead(igUserId) {
+    if (!usaSupabase()) return { erro: "Só funciona com o sistema no ar." };
+    try {
+      const { error } = await sb.rpc("excluir_lead", { p_ig_user_id: igUserId });
+      if (error) throw error;
+      return { ok: true };
+    } catch (e) {
+      console.warn(e);
+      return { erro: "Não foi possível excluir agora. Confira se o 07_calendario_e_leads.sql foi rodado." };
+    }
+  }
+
   return {
     ehLocal, configurado, usaSupabase,
+    listarPosts, salvarPost, apagarPost,
+    listarLeads, excluirLead,
     sessao, entrar, sair, aoExpirar,
     resumo, leadsPorDia, serieVazia,
     listarAutomacoes, salvarAutomacao, apagarAutomacao, alternarAtiva,

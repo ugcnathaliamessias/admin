@@ -63,6 +63,10 @@ window.App = (() => {
           <span class="atalho-icone">${icone("insta", 20)}</span>
           <span><strong>Instagram</strong><br><span class="muted">Métricas e automações de direct</span></span>
         </a>
+        <a class="card atalho" href="#instagram/leads">
+          <span class="atalho-icone">${icone("leads", 20)}</span>
+          <span><strong>Leads</strong><br><span class="muted">Quem interagiu, com planilha pra baixar</span></span>
+        </a>
         <a class="card atalho" href="#calendario">
           <span class="atalho-icone">${icone("calendario", 20)}</span>
           <span><strong>Calendário</strong><br><span class="muted">Planeje seus conteúdos</span></span>
@@ -82,21 +86,14 @@ window.App = (() => {
   // CALENDÁRIO (placeholder)
   // =================================================================
   function telaCalendario(el) {
-    el.innerHTML = `
-      <div class="cabecalho"><div><h1>Calendário</h1></div></div>
-      <div class="card vazio em-breve">
-        <div class="vazio-icone">${icone("calendario", 24)}</div>
-        <span class="selo">Em breve</span>
-        <h2 style="margin-top:12px">Calendário</h2>
-        <p>Essa área vai chegar em breve pra você planejar seus conteúdos.</p>
-      </div>`;
+    Calendario.render(el);
   }
 
   // =================================================================
   // INSTAGRAM (sub-abas Métricas e Automações)
   // =================================================================
   function telaInstagram(el, sub) {
-    const aba = sub === "metricas" ? "metricas" : "automacoes";
+    const aba = ["metricas", "leads"].includes(sub) ? sub : "automacoes";
     el.innerHTML = `
       <div class="cabecalho">
         <div>
@@ -107,6 +104,7 @@ window.App = (() => {
       <div class="abas" role="tablist">
         <button class="aba ${aba === "metricas" ? "ativa" : ""}" data-aba="metricas" role="tab">Métricas</button>
         <button class="aba ${aba === "automacoes" ? "ativa" : ""}" data-aba="automacoes" role="tab">Automações</button>
+        <button class="aba ${aba === "leads" ? "ativa" : ""}" data-aba="leads" role="tab">Leads</button>
       </div>
       <div id="aba-conteudo"></div>`;
     el.querySelectorAll(".aba").forEach((b) =>
@@ -114,6 +112,7 @@ window.App = (() => {
     );
     const alvo = $("#aba-conteudo");
     if (aba === "metricas") Metricas.render(alvo);
+    else if (aba === "leads") Leads.render(alvo);
     else Automacoes.renderLista(alvo);
   }
 
