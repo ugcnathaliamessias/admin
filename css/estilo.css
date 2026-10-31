@@ -3,18 +3,21 @@
    Pra trocar a cor de destaque, mude só --destaque (e --destaque-*).
    ===================================================================== */
 :root {
-  --destaque: #2563EB;
-  --destaque-escuro: #1D4ED8;
-  --destaque-claro: #EFF4FF;
+  /* Paleta da marca (mesma do portfólio) */
+  --destaque: #530F0E;        /* bordô (Deep Blush): cor principal */
+  --destaque-escuro: #441910; /* Rum Raisin */
+  --destaque-claro: #F7DCE2;  /* Sea Pink clarinho */
+  --rosa: #B5506B;            /* Sea Pink fechado: detalhes */
 
-  --fundo: #F7F8FA;
-  --superficie: #FFFFFF;
-  --superficie-2: #F3F4F6;
-  --texto: #1A1A1A;
-  --texto-2: #6B7280;
-  --texto-3: #9CA3AF;
-  --borda: #E5E7EB;
-  --borda-forte: #D1D5DB;
+  --fundo: #FEEFDC;           /* bege */
+  --superficie: #FFF8EF;      /* papel */
+  --superficie-2: #F8E2C6;    /* bege mais escuro */
+  --texto: #441910;           /* Rum Raisin */
+  --texto-2: #6E4A3C;
+  --texto-3: #9C7B6E;
+  --borda: #EAD3BC;
+  --borda-forte: #D9BB9F;
+  --fonte-titulo: "Inter Tight", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --sucesso: #16A34A;  --sucesso-claro: #ECFDF3;
   --atencao: #CA8A04;  --atencao-claro: #FEFCE8;
@@ -24,7 +27,7 @@
   --raio-sm: 7px;
   --sombra: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .06);
   --sombra-lg: 0 12px 32px rgba(16, 24, 40, .12);
-  --fonte: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --fonte: "Work Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --menu-largura: 232px;
   color-scheme: light;
 }
@@ -40,7 +43,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 [hidden] { display: none !important; }
-h1, h2, h3, h4 { margin: 0; line-height: 1.25; letter-spacing: -0.01em; }
+h1, h2, h3, h4 { margin: 0; line-height: 1.25; letter-spacing: -0.015em; font-family: var(--fonte-titulo); }
+.kpi-valor, .marca, .cal-titulo { font-family: var(--fonte-titulo); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 h1 { font-size: 22px; font-weight: 650; }
 h2 { font-size: 17px; font-weight: 620; }
 h3 { font-size: 15px; font-weight: 600; }
@@ -418,6 +423,86 @@ textarea.link-grande { min-height: 70px; font-family: ui-monospace, SFMono-Regul
 @keyframes entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
 /* =====================================================================
+   JANELA (modal)
+   ===================================================================== */
+.modal-fundo {
+  position: fixed; inset: 0; z-index: 80; background: rgba(68, 25, 16, .35);
+  display: grid; place-items: center; padding: 16px;
+}
+.modal {
+  width: 100%; max-width: 520px; max-height: calc(100vh - 32px); overflow-y: auto;
+  background: var(--superficie); border-radius: 14px; box-shadow: var(--sombra-lg); padding: 20px 22px;
+}
+.modal-cab { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.modal-acoes { display: flex; gap: 8px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
+.linha-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* =====================================================================
+   CALENDÁRIO
+   ===================================================================== */
+.cal-card { padding: 18px; }
+.cal-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.cal-nav { display: flex; align-items: center; gap: 6px; }
+.cal-nav .btn-icone { font-size: 22px; line-height: 1; }
+.cal-titulo { font-size: 18px; min-width: 170px; text-align: center; }
+.cal-resumo { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--texto-2); margin-bottom: 14px; }
+.cal-resumo-item { display: inline-flex; align-items: center; gap: 5px; }
+.cal-ponto { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.cal-grade { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid var(--borda); border-left: 1px solid var(--borda); }
+.cal-semana {
+  font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--texto-2);
+  padding: 6px 8px; border-right: 1px solid var(--borda); border-bottom: 1px solid var(--borda); background: var(--superficie-2);
+}
+.cal-dia {
+  min-height: 104px; padding: 6px; border-right: 1px solid var(--borda); border-bottom: 1px solid var(--borda);
+  cursor: pointer; display: flex; flex-direction: column; gap: 4px; min-width: 0; transition: background .12s;
+}
+.cal-dia:hover { background: var(--fundo); }
+.cal-fora { background: rgba(248, 226, 198, .35); cursor: default; }
+.cal-fora:hover { background: rgba(248, 226, 198, .35); }
+.cal-num { font-size: 12.5px; font-weight: 600; color: var(--texto-2); width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; }
+.cal-hoje .cal-num { background: var(--destaque); color: #fff; }
+.cal-itens { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cal-chip {
+  display: block; width: 100%; text-align: left; font: inherit; font-size: 12px; line-height: 1.3;
+  padding: 3px 6px; border-radius: 5px; border: 0; cursor: pointer;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--texto);
+  border-left: 3px solid transparent;
+}
+.cal-formato { font-weight: 700; margin-right: 4px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .03em; opacity: .75; }
+/* cores por status */
+.st-ideia     { background: #EFE6DA; border-left-color: #9C7B6E; }
+.st-roteiro   { background: #DCEAF2; border-left-color: #5F8FAB; }
+.st-gravando  { background: #F7DCE2; border-left-color: #B5506B; }
+.st-editando  { background: #F3E3C3; border-left-color: #B7862F; }
+.st-agendado  { background: #E4DCF2; border-left-color: #7A5DA8; }
+.st-publicado { background: #DDEFDF; border-left-color: #3E8A50; }
+.cal-ponto.st-ideia { background: #9C7B6E; } .cal-ponto.st-roteiro { background: #5F8FAB; }
+.cal-ponto.st-gravando { background: #B5506B; } .cal-ponto.st-editando { background: #B7862F; }
+.cal-ponto.st-agendado { background: #7A5DA8; } .cal-ponto.st-publicado { background: #3E8A50; }
+.cal-lista { display: none; }
+.cal-lista-dia { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
+.cal-lista-data { font-size: 12px; font-weight: 700; color: var(--texto-2); }
+.cal-hoje-txt { color: var(--destaque); }
+.cal-lista .cal-chip { font-size: 13.5px; padding: 8px 10px; white-space: normal; }
+
+/* =====================================================================
+   LEADS
+   ===================================================================== */
+.leads-filtros { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.leads-total { font-size: 13px; margin-bottom: 10px; }
+.leads-tabela-card { padding: 0; overflow-x: auto; }
+.leads-tabela { width: 100%; border-collapse: collapse; font-size: 14px; }
+.leads-tabela th {
+  text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--texto-2); padding: 11px 14px; background: var(--superficie-2); white-space: nowrap;
+}
+.leads-tabela td { padding: 11px 14px; border-top: 1px solid var(--borda); vertical-align: top; }
+.leads-tabela a { color: var(--destaque); font-weight: 600; text-decoration: none; }
+.leads-tabela a:hover { text-decoration: underline; }
+.leads-acoes { text-align: right; white-space: nowrap; }
+
+/* =====================================================================
    RESPONSIVO
    ===================================================================== */
 @media (max-width: 1000px) {
@@ -451,4 +536,21 @@ textarea.link-grande { min-height: 70px; font-family: ui-monospace, SFMono-Regul
   .editor-topo .espaco { display: none; }
   .editor-topo .botoes-topo { margin-left: auto; display: flex; gap: 8px; }
   .toasts { left: 16px; right: 16px; bottom: 16px; }
+  /* calendário vira lista no celular */
+  .cal-grade { display: none; }
+  .cal-lista { display: block; }
+  .cal-titulo { min-width: 0; font-size: 16px; }
+  .linha-2 { grid-template-columns: 1fr; }
+  /* leads viram cartões no celular */
+  .leads-filtros { grid-template-columns: 1fr; }
+  .leads-tabela thead { display: none; }
+  .leads-tabela, .leads-tabela tbody, .leads-tabela tr, .leads-tabela td { display: block; width: 100%; }
+  .leads-tabela tr { padding: 10px 14px; border-top: 1px solid var(--borda); }
+  .leads-tabela tr:first-child { border-top: 0; }
+  .leads-tabela td { border: 0; padding: 3px 0; }
+  .leads-tabela td[data-rotulo]::before {
+    content: attr(data-rotulo) ": "; font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .05em; color: var(--texto-2);
+  }
+  .leads-acoes { text-align: left; padding-top: 8px !important; }
 }
