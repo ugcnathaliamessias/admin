@@ -71,7 +71,15 @@ window.App = (() => {
           <span class="atalho-icone">${icone("calendario", 20)}</span>
           <span><strong>Calendário</strong><br><span class="muted">Planeje seus conteúdos</span></span>
         </a>
+        <a class="card atalho" href="#abordagens/controle">
+          <span class="atalho-icone">${icone("envio", 20)}</span>
+          <span><strong>Abordagens</strong><br><span class="muted" id="atalho-abord">Mensagens pra marcas e follow-ups</span></span>
+        </a>
       </div>`;
+    Abordagens.pendentesHoje().then((n) => {
+      const a = $("#atalho-abord");
+      if (a && n) { a.textContent = `${n} follow-up${n > 1 ? "s" : ""} pra mandar hoje`; a.classList.add("atalho-alerta"); }
+    });
     const r = await Dados.resumo();
     $("#kpi-leads").textContent = num(r.leads);
     $("#kpi-ativas").textContent = num(r.ativas);
@@ -129,6 +137,7 @@ window.App = (() => {
     const el = $("#rota");
     if (rota === "calendario") telaCalendario(el);
     else if (rota === "instagram") telaInstagram(el, sub);
+    else if (rota === "abordagens") Abordagens.render(el, sub);
     else telaInicio(el);
     window.scrollTo(0, 0);
   }

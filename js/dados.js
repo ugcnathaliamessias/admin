@@ -372,8 +372,65 @@ window.Dados = (() => {
     }
   }
 
+  // =================================================================
+  // ABORDAGENS (modelos de mensagem + controle das marcas)
+  // =================================================================
+  const CHAVES_ABORD = { abord_modelos: "painel_abord_modelos_teste", abord_contatos: "painel_abord_contatos_teste" };
+
+  async function listarAbord(tabela, perfil) {
+    if (!usaSupabase()) return ler(CHAVES_ABORD[tabela], []).filter((r) => r.perfil === perfil);
+    try {
+      const { data, error } = await sb.from(tabela).select("*").eq("perfil", perfil).order("created_at");
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.warn(`Não deu pra listar ${tabela}:`, e);
+      return [];
+    }
+  }
+
+  async function salvarAbord(tabela, row) {
+    if (!usaSupabase()) {
+      const lista = ler(CHAVES_ABORD[tabela], []);
+      const agora = new Date().toISOString();
+      const velho = lista.find((r) => r.id === row.id);
+      const novo = { ...velho, ...row, id: row.id || cryptoId(), created_at: velho?.created_at || agora, updated_at: agora };
+      const i = lista.findIndex((r) => r.id === novo.id);
+      if (i >= 0) lista[i] = novo; else lista.push(novo);
+      if (!gravar(CHAVES_ABORD[tabela], lista)) return { erro: "Não deu pra salvar neste navegador." };
+      return { ok: true, row: novo, local: true };
+    }
+    try {
+      const corpo = { ...row };
+      if (!corpo.id) delete corpo.id;
+      delete corpo.created_at;
+      delete corpo.updated_at;
+      const { data, error } = await sb.from(tabela).upsert(corpo).select().single();
+      if (error) throw error;
+      return { ok: true, row: data };
+    } catch (e) {
+      console.warn(e);
+      return { erro: "Não foi possível salvar. Confira se o 08_abordagens.sql foi rodado." };
+    }
+  }
+
+  async function apagarAbord(tabela, id) {
+    if (!usaSupabase()) {
+      gravar(CHAVES_ABORD[tabela], ler(CHAVES_ABORD[tabela], []).filter((r) => r.id !== id));
+      return { ok: true };
+    }
+    try {
+      const { error } = await sb.from(tabela).delete().eq("id", id);
+      if (error) throw error;
+      return { ok: true };
+    } catch {
+      return { erro: "Não foi possível apagar agora." };
+    }
+  }
+
   return {
     ehLocal, configurado, usaSupabase,
+    listarAbord, salvarAbord, apagarAbord,
     listarPosts, salvarPost, apagarPost,
     listarLeads, excluirLead,
     sessao, entrar, sair, aoExpirar,
