@@ -61,7 +61,7 @@ a { color: var(--destaque); }
 }
 
 /* ---------- Campos ---------- */
-input[type=text], input[type=email], input[type=password], input[type=url], input[type=number], textarea, select {
+input[type=text], input[type=date], input[type=email], input[type=password], input[type=url], input[type=number], textarea, select {
   width: 100%;
   font: inherit;
   color: var(--texto);
@@ -503,6 +503,62 @@ textarea.link-grande { min-height: 70px; font-family: ui-monospace, SFMono-Regul
 .leads-acoes { text-align: right; white-space: nowrap; }
 
 /* =====================================================================
+   ABORDAGENS
+   ===================================================================== */
+.abord-perfis { display: inline-flex; background: var(--superficie-2); border-radius: 999px; padding: 3px; gap: 2px; }
+.abord-perfil {
+  font: inherit; font-size: 13px; font-weight: 600; border: 0; background: transparent; color: var(--texto-2);
+  padding: 6px 14px; border-radius: 999px; cursor: pointer;
+}
+.abord-perfil.ativo { background: var(--destaque); color: #fff; }
+.abord-bolinha {
+  display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 4px;
+  border-radius: 999px; background: var(--rosa); color: #fff; font-size: 11px; font-weight: 700;
+}
+.abord-filtros { display: flex; flex-wrap: wrap; gap: 6px; }
+.abord-filtro {
+  font: inherit; font-size: 13px; border: 1px solid var(--borda); background: var(--superficie); color: var(--texto-2);
+  padding: 6px 12px; border-radius: 999px; cursor: pointer;
+}
+.abord-filtro b { color: var(--texto); margin-left: 2px; }
+.abord-filtro.ativo { border-color: var(--destaque); background: var(--destaque-claro); color: var(--destaque); }
+.abord-status { font: inherit; font-size: 13px; padding: 5px 8px; border-radius: var(--raio-sm); border: 1px solid var(--borda); background: var(--superficie); color: var(--texto); min-width: 160px; max-width: 210px; }
+.abord-tabela .chip { white-space: nowrap; }
+.abord-selo { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: var(--superficie-2); color: var(--texto-2); white-space: nowrap; }
+.selo-hoje { background: var(--destaque-claro); color: var(--destaque); }
+.selo-atrasado { background: var(--erro-claro); color: #991B1B; }
+.selo-encerrar { background: var(--atencao-claro); color: #854D0E; }
+.abord-tabela .leads-acoes { display: flex; gap: 6px; justify-content: flex-end; }
+.abord-dica { font-size: 12.5px; margin-top: 10px; }
+.abord-secao { margin-bottom: 30px; }
+.abord-modelos { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.abord-modelo { display: flex; flex-direction: column; gap: 8px; padding: 16px; }
+.abord-modelo .chip { align-self: flex-start; }
+.abord-modelo-topo { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.abord-modelo-topo h3 { font-size: 15px; margin: 0; }
+.abord-texto {
+  margin: 0; font-size: 13.5px; color: var(--texto-2); white-space: pre-wrap;
+  display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden;
+}
+.abord-modelo-acoes { display: flex; gap: 6px; margin-top: auto; padding-top: 4px; }
+.abord-vazio { padding: 18px; }
+.abord-vazio p { margin: 0; }
+.abord-contador { font-size: 12px; font-weight: 600; color: var(--texto-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.abord-contador.estourou { color: var(--erro); }
+.rotulo .abord-contador { float: right; }
+.abord-campo { background: var(--destaque-claro); color: var(--destaque); border-radius: 4px; padding: 0 3px; font-weight: 600; }
+.abord-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+.abord-campos .campo-largo { grid-column: 1 / -1; }
+.abord-campos textarea { min-height: 0; resize: vertical; }
+.abord-previa-cab { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.abord-previa {
+  white-space: pre-wrap; font-size: 14px; line-height: 1.55; background: var(--fundo); border: 1px solid var(--borda);
+  border-radius: var(--raio-sm); padding: 12px 14px; max-height: 320px; overflow-y: auto; margin-bottom: 12px;
+}
+.modal-largo { max-width: 640px; }
+.atalho-alerta { color: var(--rosa) !important; font-weight: 600; }
+
+/* =====================================================================
    RESPONSIVO
    ===================================================================== */
 @media (max-width: 1000px) {
@@ -553,4 +609,13 @@ textarea.link-grande { min-height: 70px; font-family: ui-monospace, SFMono-Regul
     letter-spacing: .05em; color: var(--texto-2);
   }
   .leads-acoes { text-align: left; padding-top: 8px !important; }
+  /* abordagens */
+  .abas { overflow-x: auto; scrollbar-width: none; }
+  .aba { white-space: nowrap; flex-shrink: 0; }
+  .abord-tabela .leads-acoes { justify-content: flex-start; }
+  .abord-status { max-width: none; width: 100%; margin-top: 2px; }
+  .abord-campos { grid-template-columns: 1fr; }
+  .abord-modelos { grid-template-columns: 1fr; }
+  .abord-perfis { width: 100%; }
+  .abord-perfil { flex: 1; }
 }
