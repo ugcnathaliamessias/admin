@@ -37,11 +37,31 @@
       <p id="login-erro" class="alerta alerta-erro" hidden></p>
 
       <button id="btn-entrar" class="btn btn-primario btn-bloco" type="submit">Entrar</button>
+      <button id="btn-esqueci" class="login-link" type="button">Esqueci minha senha</button>
+      <p id="login-ok" class="alerta alerta-ok" hidden></p>
 
       <p id="login-aviso-local" class="aviso-local" hidden>
         Modo de teste local: qualquer e-mail e uma senha de 5 dígitos entram.
         No ar (produção), o login será pelo Supabase.
       </p>
+    </form>
+  </section>
+
+  <!-- Criar senha nova (quando chega pelo link do e-mail) -->
+  <section id="tela-nova-senha" class="login" hidden>
+    <form id="form-nova-senha" class="login-card" novalidate>
+      <h1>Criar senha nova</h1>
+      <p class="muted">Escolha uma senha com pelo menos 8 caracteres.</p>
+      <label class="campo">
+        <span class="rotulo">Senha nova</span>
+        <input id="nova-senha" type="password" autocomplete="new-password" minlength="8" required>
+      </label>
+      <label class="campo">
+        <span class="rotulo">Repita a senha nova</span>
+        <input id="nova-senha-2" type="password" autocomplete="new-password" minlength="8" required>
+      </label>
+      <p id="nova-senha-erro" class="alerta alerta-erro" hidden></p>
+      <button id="btn-nova-senha" class="btn btn-primario btn-bloco" type="submit">Salvar senha nova</button>
     </form>
   </section>
 
