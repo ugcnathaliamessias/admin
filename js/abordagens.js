@@ -183,8 +183,9 @@ window.Abordagens = (() => {
   }
 
   function telaLista() {
+    // Marcas de Black Friday primeiro; depois pela ordem em que entraram
     const fila = contatos.filter((c) => c.status === "a_enviar")
-      .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
+      .sort((a, b) => (ehBlack(b) - ehBlack(a)) || String(a.created_at).localeCompare(String(b.created_at)));
     const enviadasHoje = contatos.filter((c) => c.status !== "a_enviar" && c.primeiro_envio === hoje()).length;
     const meta = Number(lerLocal(CHAVE_META, 50)) || 50;
     const modelo = modeloDaLista();
@@ -222,7 +223,11 @@ window.Abordagens = (() => {
         <div class="card abord-fila">
           ${fila.map((c) => `
             <div class="abord-fila-item">
-              <a class="abord-fila-arroba" href="${linkPerfil(arroba(c))}" target="_blank" rel="noopener">@${esc(arroba(c))}</a>
+              <div class="abord-fila-marca">
+                <a class="abord-fila-arroba" href="${linkPerfil(arroba(c))}" target="_blank" rel="noopener">@${esc(arroba(c))}</a>
+                ${ehBlack(c) ? `<span class="abord-bf">🖤 Black Friday</span>` : ""}
+                ${notaCurta(c) ? `<span class="abord-fila-nota" title="${esc(notaCurta(c))}">${esc(notaCurta(c))}</span>` : ""}
+              </div>
               <input type="text" class="abord-fila-nome" data-lista-nome data-id="${esc(c.id)}" value="${esc(c.marca)}" placeholder="Nome da marca" aria-label="Nome da marca @${esc(arroba(c))}">
               <div class="abord-fila-acoes">
                 <button class="btn btn-sm" data-acao="lista-copiar" data-id="${esc(c.id)}" ${modelo ? "" : "disabled"}>${icone("clipe", 14)} Copiar e abrir</button>
@@ -238,6 +243,15 @@ window.Abordagens = (() => {
         </div>`}
       <p class="muted abord-dica">Pra não ter a conta bloqueada pelo Instagram: comece com 30 a 50 por dia, espalhe em blocos ao longo do dia e confira o nome de cada marca antes de copiar.</p>`;
   }
+
+  // Black Friday: marcado nas notas com "BLACK FRIDAY"
+  const ehBlack = (c) => (/black friday/i.test(String(c.notas || "")) ? 1 : 0);
+  // nota sem a etiqueta de Black Friday e sem a fonte (que não ajudam na hora de abordar)
+  const notaCurta = (c) => String(c.notas || "")
+    .replace(/🖤\s*BLACK FRIDAY\s*\([^)]*\)\.?\s*/i, "")
+    .replace(/\s*Fonte: Biblioteca de Anúncios[^.]*\.?/i, "")
+    .replace(/^Biblioteca de Anúncios \d{2}\/\d{2}\.\s*/i, "")
+    .trim();
 
   // transforma o texto colado em lista de @ (sem repetir)
   function lerArrobas(texto) {
