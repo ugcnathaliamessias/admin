@@ -134,6 +134,12 @@ input:focus, textarea:focus, select:focus {
 }
 .login-card h1 { margin: 14px 0 4px; font-size: 20px; }
 .login-card > .muted { margin-bottom: 22px; }
+.login-link {
+  display: block; margin: 12px auto 0; background: none; border: 0; padding: 4px;
+  font: inherit; font-size: 13.5px; color: var(--destaque); text-decoration: underline; cursor: pointer;
+}
+.login-link[disabled] { opacity: .5; cursor: default; }
+.alerta-ok { background: var(--sucesso-claro); color: #14532D; border: 1px solid #BBF7D0; margin: 12px 0 0; }
 .login-logo {
   width: 42px; height: 42px; border-radius: 11px;
   display: grid; place-items: center;
