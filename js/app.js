@@ -149,14 +149,24 @@ window.App = (() => {
   function mostrarLogin() {
     $("#tela-app").hidden = true;
     $("#editor").hidden = true;
+    $("#tela-nova-senha").hidden = true;
     $("#tela-login").hidden = false;
     $("#login-aviso-local").hidden = !Dados.ehLocal;
+    $("#btn-esqueci").hidden = Dados.ehLocal;
     if (Dados.ehLocal) $("#login-senha").setAttribute("inputmode", "numeric");
     setTimeout(() => $("#login-email").focus(), 50);
   }
 
+  function mostrarNovaSenha() {
+    $("#tela-app").hidden = true;
+    $("#tela-login").hidden = true;
+    $("#tela-nova-senha").hidden = false;
+    setTimeout(() => $("#nova-senha").focus(), 50);
+  }
+
   function mostrarApp(s) {
     $("#tela-login").hidden = true;
+    $("#tela-nova-senha").hidden = true;
     $("#tela-app").hidden = false;
     $("#faixa-local").hidden = s.modo !== "local";
     $("#menu-usuario").textContent = s.email || "";
@@ -183,6 +193,36 @@ window.App = (() => {
       $("#login-senha").value = "";
       const s = await Dados.sessao();
       if (s) mostrarApp(s);
+    });
+
+    // esqueci minha senha: manda o e-mail com o link
+    $("#btn-esqueci").addEventListener("click", async () => {
+      const erro = $("#login-erro"), ok = $("#login-ok"), btn = $("#btn-esqueci");
+      erro.hidden = true; ok.hidden = true;
+      btn.disabled = true;
+      const r = await Dados.pedirNovaSenha($("#login-email").value);
+      btn.disabled = false;
+      if (r.erro) { erro.textContent = r.erro; erro.hidden = false; $("#login-email").focus(); return; }
+      ok.textContent = "Se esse e-mail estiver cadastrado, chega em instantes um link pra criar uma senha nova. Confira também o spam.";
+      ok.hidden = false;
+    });
+
+    // criar senha nova (veio pelo link do e-mail)
+    $("#form-nova-senha").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const erro = $("#nova-senha-erro"), btn = $("#btn-nova-senha");
+      const s1 = $("#nova-senha").value, s2 = $("#nova-senha-2").value;
+      erro.hidden = true;
+      if (s1.length < 8) { erro.textContent = "A senha precisa ter pelo menos 8 caracteres."; erro.hidden = false; return; }
+      if (s1 !== s2) { erro.textContent = "As duas senhas não são iguais."; erro.hidden = false; return; }
+      btn.disabled = true; btn.textContent = "Salvando...";
+      const r = await Dados.trocarSenha(s1);
+      btn.disabled = false; btn.textContent = "Salvar senha nova";
+      if (r.erro) { erro.textContent = r.erro; erro.hidden = false; return; }
+      $("#nova-senha").value = ""; $("#nova-senha-2").value = "";
+      toast("Senha nova salva. Use ela nos próximos logins.", "ok");
+      const s = await Dados.sessao();
+      if (s) mostrarApp(s); else mostrarLogin();
     });
 
     // sair
@@ -214,8 +254,14 @@ window.App = (() => {
     });
 
     const s = await Dados.sessao();
+    // link do e-mail: limpa o endereço e abre a tela certa
+    if (Dados.veioDeRecuperacao || Dados.erroDoLink) history.replaceState(null, "", location.pathname);
+    if (Dados.veioDeRecuperacao && s) return mostrarNovaSenha();
     if (s) mostrarApp(s);
-    else mostrarLogin();
+    else {
+      mostrarLogin();
+      if (Dados.erroDoLink) { $("#login-erro").textContent = Dados.erroDoLink; $("#login-erro").hidden = false; }
+    }
   }
 
   return { iniciar, toast, esc, icone, num, $ };

@@ -23,6 +23,13 @@ window.Dados = (() => {
     /^https:\/\//.test(cfg.SUPABASE_URL || "") &&
     !!cfg.SUPABASE_ANON_KEY && !String(cfg.SUPABASE_ANON_KEY).startsWith("SUA_");
 
+  // Chegou pelo link "criar senha nova" do e-mail? (lido antes do Supabase limpar o endereço)
+  const hashInicial = location.hash || "";
+  const veioDeRecuperacao = /type=recovery/.test(hashInicial);
+  const erroDoLink = /error_code=/.test(hashInicial)
+    ? "Esse link expirou ou já foi usado. Peça um novo em \"Esqueci minha senha\"."
+    : "";
+
   let sb = null;
   try {
     if (configurado && window.supabase?.createClient) {
@@ -88,6 +95,40 @@ window.Dados = (() => {
   async function sair() {
     apagar(CHAVE_LOGIN_LOCAL);
     if (sb && !ehLocal) { try { await sb.auth.signOut(); } catch { /* nada */ } }
+  }
+
+  // Manda o e-mail com o link pra criar senha nova
+  async function pedirNovaSenha(email) {
+    email = (email || "").trim();
+    if (!/^\S+@\S+\.\S+$/.test(email)) return { erro: "Digite o seu e-mail no campo acima." };
+    if (ehLocal || !sb) return { erro: "Isso só funciona no painel no ar." };
+    try {
+      const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+      if (error) {
+        if (/rate|seconds|too many/i.test(error.message)) return { erro: "Já mandamos um e-mail agora há pouco. Espere alguns minutos e tente de novo." };
+        throw error;
+      }
+      return { ok: true };
+    } catch (e) {
+      console.warn(e);
+      return { erro: "Não foi possível mandar o e-mail agora. Tente de novo em instantes." };
+    }
+  }
+
+  async function trocarSenha(senha) {
+    if (!sb) return { erro: "Sem conexão com o servidor." };
+    try {
+      const { error } = await sb.auth.updateUser({ password: senha });
+      if (error) {
+        if (/different|same/i.test(error.message)) return { erro: "A senha nova precisa ser diferente da antiga." };
+        if (/weak|short|characters/i.test(error.message)) return { erro: "Senha fraca. Use pelo menos 8 caracteres, misturando letras e números." };
+        throw error;
+      }
+      return { ok: true };
+    } catch (e) {
+      console.warn(e);
+      return { erro: "Não foi possível salvar a senha nova. Peça outro link e tente de novo." };
+    }
   }
 
   // Avisa quando a sessão do Supabase expira
@@ -515,6 +556,7 @@ window.Dados = (() => {
     listarPosts, salvarPost, apagarPost,
     listarLeads, excluirLead,
     sessao, entrar, sair, aoExpirar,
+    veioDeRecuperacao, erroDoLink, pedirNovaSenha, trocarSenha,
     resumo, leadsPorDia, serieVazia,
     listarAutomacoes, salvarAutomacao, apagarAutomacao, alternarAtiva,
     listarArquivos, enviarArquivo,
