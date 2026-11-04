@@ -56,7 +56,10 @@ window.Portfolio = (() => {
           <h1>🖼️ Portfólio</h1>
           <p class="muted">O que você mudar aqui aparece no seu site em segundos.</p>
         </div>
-        <a class="btn" href="${SITE}" target="_blank" rel="noopener">${icone("link", 15)} Ver site</a>
+        <div class="vte-cab-acoes">
+          <a class="btn" href="${SITE}" target="_blank" rel="noopener">${icone("link", 15)} Ver site</a>
+          ${App.seletorPerfil()}
+        </div>
       </div>
       <div class="abas" role="tablist">
         ${ABAS.map((a) => `<button class="aba ${a.v === aba ? "ativa" : ""}" data-acao="aba" data-v="${a.v}" role="tab">${a.t}</button>`).join("")}

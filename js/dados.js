@@ -606,8 +606,55 @@ window.Dados = (() => {
     }
   }
 
+  // =================================================================
+  // VAI TER ESTRADA (tabelas vte_dados e vte_historico)
+  // =================================================================
+  const CHAVE_VTE_LOCAL = "painel_vte_teste";
+
+  async function lerVte() {
+    if (!usaSupabase()) return ler(CHAVE_VTE_LOCAL, {});
+    try {
+      const { data, error } = await sb.from("vte_dados").select("chave, valor");
+      if (error) throw error;
+      return Object.fromEntries((data || []).map((l) => [l.chave, l.valor]));
+    } catch (e) {
+      console.warn("Não deu pra ler o Vai Ter Estrada:", e);
+      return null;
+    }
+  }
+
+  async function salvarVte(chave, valor) {
+    if (!usaSupabase()) {
+      const tudo = ler(CHAVE_VTE_LOCAL, {});
+      tudo[chave] = valor;
+      if (!gravar(CHAVE_VTE_LOCAL, tudo)) return { erro: "Não deu pra salvar neste navegador." };
+      return { ok: true, local: true };
+    }
+    try {
+      const { error } = await sb.from("vte_dados").upsert({ chave, valor });
+      if (error) throw error;
+      return { ok: true };
+    } catch (e) {
+      console.warn(e);
+      return { erro: "Não foi possível salvar. Confira se o 15_vai_ter_estrada.sql foi rodado." };
+    }
+  }
+
+  async function historicoVte() {
+    if (!usaSupabase()) return ler(CHAVE_VTE_LOCAL, {}).historico || [];
+    try {
+      const { data, error } = await sb.from("vte_historico").select("dia, seguidores, posts, views_30d, interacoes_30d, fonte").order("dia");
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.warn(e);
+      return [];
+    }
+  }
+
   return {
     ehLocal, configurado, usaSupabase,
+    lerVte, salvarVte, historicoVte,
     lerPortfolio, salvarPortfolio, enviarImagemPortfolio,
     listar, salvar, apagar: apagar_,
     listarAbord, salvarAbord, salvarVariosAbord, apagarAbord,

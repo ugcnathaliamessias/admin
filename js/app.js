@@ -41,6 +41,23 @@ window.App = (() => {
   // Números no formato brasileiro
   const num = (n) => Number(n || 0).toLocaleString("pt-BR");
 
+  // Perfil em uso: Nathalia (UGC) ou Vai Ter Estrada. Um botão só, que vale
+  // pro Instagram, Portfólio e Marcas & prospecção (mesma chave do Abordagens).
+  const PERFIS = [
+    { v: "nathalia", t: "Nathalia (UGC)" },
+    { v: "vaiterestrada", t: "Vai Ter Estrada" },
+  ];
+  const CHAVE_PERFIL = "painel_abord_perfil";
+  function perfilAtual() {
+    try { return JSON.parse(localStorage.getItem(CHAVE_PERFIL)) === "vaiterestrada" ? "vaiterestrada" : "nathalia"; } catch { return "nathalia"; }
+  }
+  function seletorPerfil() {
+    const atual = perfilAtual();
+    return `<div class="abord-perfis" role="group" aria-label="Perfil">
+      ${PERFIS.map((p) => `<button type="button" class="abord-perfil ${p.v === atual ? "ativo" : ""}" data-trocar-perfil="${p.v}" aria-pressed="${p.v === atual}">${p.t}</button>`).join("")}
+    </div>`;
+  }
+
   // =================================================================
   // INÍCIO
   // =================================================================
@@ -106,6 +123,7 @@ window.App = (() => {
   // INSTAGRAM (sub-abas Métricas e Automações)
   // =================================================================
   function telaInstagram(el, sub) {
+    if (perfilAtual() === "vaiterestrada") return VaiTerEstrada.abrirInstagram(el);
     const aba = ["metricas", "leads"].includes(sub) ? sub : "automacoes";
     el.innerHTML = `
       <div class="cabecalho">
@@ -113,6 +131,7 @@ window.App = (() => {
           <h1>📸 Instagram</h1>
           <p class="muted">Acompanhe sua conta e crie respostas automáticas no direct.</p>
         </div>
+        ${seletorPerfil()}
       </div>
       <div class="abas" role="tablist">
         <button class="aba ${aba === "metricas" ? "ativa" : ""}" data-aba="metricas" role="tab">📊 Métricas</button>
@@ -145,7 +164,10 @@ window.App = (() => {
     if (rota === "calendario") telaCalendario(el);
     else if (rota === "instagram") telaInstagram(el, sub);
     else if (rota === "abordagens") Abordagens.render(el, sub);
-    else if (rota === "portfolio") Portfolio.render(el, sub);
+    else if (rota === "portfolio") {
+      if (perfilAtual() === "vaiterestrada") VaiTerEstrada.abrirMidiaKit(el);
+      else Portfolio.render(el, sub);
+    }
     else if (rota === "ideias") Ideias.render(el);
     else if (rota === "tarefas") Gestao.telaTarefas(el);
     else if (rota === "metas") Gestao.telaMetas(el);
@@ -244,6 +266,14 @@ window.App = (() => {
       mostrarLogin();
     });
 
+    // botão de perfil (Nathalia / Vai Ter Estrada) no Instagram e no Portfólio
+    document.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-trocar-perfil]");
+      if (!b) return;
+      try { localStorage.setItem(CHAVE_PERFIL, JSON.stringify(b.dataset.trocarPerfil)); } catch { /* nada */ }
+      rotear();
+    });
+
     // menu no celular
     $("#menu-toggle").addEventListener("click", () => {
       const aberto = $("#menu").classList.toggle("aberto");
@@ -275,5 +305,5 @@ window.App = (() => {
     }
   }
 
-  return { iniciar, toast, esc, icone, num, $ };
+  return { iniciar, toast, esc, icone, num, $, perfilAtual, seletorPerfil };
 })();

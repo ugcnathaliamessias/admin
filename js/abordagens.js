@@ -76,6 +76,9 @@ window.Abordagens = (() => {
   let el = null;
   let aba = "lista";
   let perfil = lerLocal(CHAVE_PERFIL, "nathalia");
+  // Dentro da área Vai Ter Estrada: perfil fixo e abas em outro endereço
+  let base = "#abordagens";
+  let perfilFixo = null;
   let modelos = [];
   let contatos = [];
   let filtro = "pendentes";
@@ -127,9 +130,13 @@ window.Abordagens = (() => {
   // =================================================================
   // TELA
   // =================================================================
-  async function render(alvo, sub) {
+  // opts.perfil + opts.base: usado pela área Vai Ter Estrada (perfil travado)
+  async function render(alvo, sub, opts = {}) {
     el = alvo;
     aba = ABAS.some((a) => a.v === sub) ? sub : "lista";
+    base = opts.base || "#abordagens";
+    perfilFixo = opts.perfil || null;
+    perfil = perfilFixo || lerLocal(CHAVE_PERFIL, "nathalia");
     el.onclick = aoClicar;
     el.onchange = aoMudar;
     el.oninput = aoDigitar;
@@ -145,6 +152,12 @@ window.Abordagens = (() => {
     const pendentes = contatos.filter(vencido).length;
     const naLista = contatos.filter((c) => c.status === "a_enviar").length;
     const bolinha = (n) => (n ? ` <span class="abord-bolinha">${n}</span>` : "");
+    const abas = `
+      <div class="abas abas-sub" role="tablist">
+        ${ABAS.map((a) => `<button class="aba ${a.v === aba ? "ativa" : ""}" data-acao="aba" data-v="${a.v}" role="tab">${a.t}${a.v === "controle" ? bolinha(pendentes) : a.v === "lista" ? bolinha(naLista) : ""}</button>`).join("")}
+      </div>
+      ${Dados.usaSupabase() ? "" : `<p class="alerta alerta-atencao">Modo de teste local: tudo fica salvo só neste navegador.</p>`}`;
+    if (perfilFixo) return abas;
     return `
       <div class="cabecalho">
         <div>
@@ -449,7 +462,7 @@ window.Abordagens = (() => {
     if (!b || b.disabled) return;
     const a = b.dataset.acao;
     if (a === "perfil") { perfil = b.dataset.v; gravarLocal(CHAVE_PERFIL, perfil); return render(el, aba); }
-    if (a === "aba") { location.hash = `#abordagens/${b.dataset.v}`; return; }
+    if (a === "aba") { location.hash = `${base}/${b.dataset.v}`; return; }
     if (a === "filtro") { filtro = b.dataset.v; return desenhar(); }
     if (a === "lista-add") return adicionarNaLista();
     if (a === "lista-copiar") return copiarDaLista(b.dataset.id);
@@ -615,7 +628,7 @@ window.Abordagens = (() => {
         if (i >= 0) contatos[i] = r.row; else contatos.push(r.row);
         toast(`${marca} salva no controle.`, "ok");
         fechar();
-        if (aba !== "controle") { location.hash = "#abordagens/controle"; return; }
+        if (aba !== "controle") { location.hash = `${base}/controle`; return; }
         filtro = vencido(r.row) ? "pendentes" : "todas";
         desenhar();
       });
