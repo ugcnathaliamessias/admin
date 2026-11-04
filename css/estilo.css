@@ -556,6 +556,24 @@ textarea.link-grande { min-height: 70px; font-family: ui-monospace, SFMono-Regul
   border-radius: var(--raio-sm); padding: 12px 14px; max-height: 320px; overflow-y: auto; margin-bottom: 12px;
 }
 .modal-largo { max-width: 640px; }
+/* lista do dia */
+.abord-lista-add { padding: 16px; margin-bottom: 16px; }
+.abord-lista-add-acoes { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 12.5px; }
+.abord-lista-topo { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.abord-meta { display: flex; align-items: baseline; gap: 8px; }
+.abord-meta-num { font-family: var(--fonte-titulo); font-size: 30px; font-weight: 800; color: var(--destaque); line-height: 1; }
+.abord-meta-num.batida { color: var(--sucesso); }
+.abord-meta > span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.abord-meta .abord-meta-input { width: 64px !important; padding: 3px 6px !important; display: inline-block; font: inherit; }
+.abord-lista-modelo { display: flex; flex-direction: column; gap: 4px; min-width: 240px; }
+.abord-lista-extras { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0 12px; }
+.abord-fila { padding: 0; }
+.abord-fila-item { display: grid; grid-template-columns: minmax(130px, 1fr) minmax(150px, 1.2fr) auto; gap: 10px; align-items: center; padding: 10px 14px; border-top: 1px solid var(--borda); }
+.abord-fila-item:first-child { border-top: 0; }
+.abord-fila-arroba { color: var(--destaque); font-weight: 600; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.abord-fila-arroba:hover { text-decoration: underline; }
+.abord-fila-nome { padding: 6px 9px !important; font-size: 13.5px !important; }
+.abord-fila-acoes { display: flex; gap: 6px; align-items: center; justify-content: flex-end; }
 .atalho-alerta { color: var(--rosa) !important; font-weight: 600; }
 
 /* =====================================================================
@@ -617,5 +635,9 @@ textarea.link-grande { min-height: 70px; font-family: ui-monospace, SFMono-Regul
   .abord-campos { grid-template-columns: 1fr; }
   .abord-modelos { grid-template-columns: 1fr; }
   .abord-perfis { width: 100%; }
+  .abord-fila-item { grid-template-columns: 1fr; gap: 6px; }
+  .abord-fila-acoes { justify-content: flex-start; }
+  .abord-lista-add-acoes { flex-direction: column; align-items: stretch; }
+  .abord-lista-modelo { min-width: 0; width: 100%; }
   .abord-perfil { flex: 1; }
 }
