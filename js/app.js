@@ -45,47 +45,52 @@ window.App = (() => {
   // INÍCIO
   // =================================================================
   async function telaInicio(el) {
+    const h = new Date().getHours();
+    const saudacao = h < 12 ? "Bom dia, Nath ☀️" : h < 18 ? "Boa tarde, Nath 🌤️" : "Boa noite, Nath 🌙";
+    const dataHoje = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
     el.innerHTML = `
       <div class="cabecalho">
         <div>
-          <h1>Bem-vindo ao seu painel</h1>
-          <p class="muted">Uma visão rápida de como estão suas automações.</p>
+          <h1>${saudacao}</h1>
+          <p class="muted">Hoje é ${esc(dataHoje)}. Bora fazer acontecer 💗</p>
         </div>
       </div>
-      <div class="grade grade-3">
-        ${cartaoKpi("Leads captados", "kpi-leads", "Pessoas que interagiram")}
-        ${cartaoKpi("Automações ativas", "kpi-ativas", "Respondendo agora")}
-        ${cartaoKpi("DMs enviadas", "kpi-dms", "Nos últimos 7 dias")}
+      <h2 class="secao-titulo" style="margin-top:0">📌 Seu dia</h2>
+      <div class="inicio-dia">
+        <a class="card inicio-card" href="#abordagens/controle"><span class="inicio-emoji">📨</span><span class="rotulo">Follow-ups pra hoje</span><div class="kpi-valor" id="ini-follow">…</div></a>
+        <a class="card inicio-card" href="#tarefas"><span class="inicio-emoji">✅</span><span class="rotulo">Tarefas pra hoje</span><div class="kpi-valor" id="ini-tarefas">…</div></a>
+        <a class="card inicio-card" href="#financeiro"><span class="inicio-emoji">💸</span><span class="rotulo">Recebido no mês</span><div class="kpi-valor" id="ini-recebido">…</div><div class="kpi-sub" id="ini-areceber"></div></a>
+        <a class="card inicio-card" href="#ideias"><span class="inicio-emoji">💡</span><span class="rotulo">Ideias guardadas</span><div class="kpi-valor" id="ini-ideias">…</div></a>
       </div>
-      <h2 class="secao-titulo">Atalhos</h2>
+      <div id="ini-metas"></div>
+      <h2 class="secao-titulo">⚡ Atalhos</h2>
       <div class="atalhos">
-        <a class="card atalho" href="#instagram/automacoes">
-          <span class="atalho-icone">${icone("insta", 20)}</span>
-          <span><strong>Instagram</strong><br><span class="muted">Métricas e automações de direct</span></span>
-        </a>
-        <a class="card atalho" href="#instagram/leads">
-          <span class="atalho-icone">${icone("leads", 20)}</span>
-          <span><strong>Leads</strong><br><span class="muted">Quem interagiu, com planilha pra baixar</span></span>
-        </a>
-        <a class="card atalho" href="#calendario">
-          <span class="atalho-icone">${icone("calendario", 20)}</span>
-          <span><strong>Calendário</strong><br><span class="muted">Planeje seus conteúdos</span></span>
-        </a>
-        <a class="card atalho" href="#abordagens/controle">
-          <span class="atalho-icone">${icone("envio", 20)}</span>
-          <span><strong>Abordagens</strong><br><span class="muted" id="atalho-abord">Mensagens pra marcas e follow-ups</span></span>
-        </a>
+        <a class="card atalho" href="#abordagens/lista"><span class="atalho-emoji">🚀</span><span><strong>Lista do dia</strong><br><span class="muted">Mandar abordagens pras marcas</span></span></a>
+        <a class="card atalho" href="#ideias"><span class="atalho-emoji">💡</span><span><strong>Guardar uma ideia</strong><br><span class="muted">Antes que ela fuja</span></span></a>
+        <a class="card atalho" href="#calendario"><span class="atalho-emoji">📅</span><span><strong>Calendário</strong><br><span class="muted">Planejar os conteúdos</span></span></a>
+        <a class="card atalho" href="#portfolio"><span class="atalho-emoji">🖼️</span><span><strong>Portfólio</strong><br><span class="muted">Subir vídeo novo</span></span></a>
+      </div>
+      <h2 class="secao-titulo">📸 Instagram</h2>
+      <div class="grade grade-3">
+        ${cartaoKpi("👥 Leads captados", "kpi-leads", "Pessoas que interagiram")}
+        ${cartaoKpi("🤖 Automações ativas", "kpi-ativas", "Respondendo agora")}
+        ${cartaoKpi("💌 DMs enviadas", "kpi-dms", "Nos últimos 7 dias")}
       </div>`;
-    Abordagens.pendentesHoje().then((n) => {
-      const a = $("#atalho-abord");
-      if (a && n) { a.textContent = `${n} follow-up${n > 1 ? "s" : ""} pra mandar hoje`; a.classList.add("atalho-alerta"); }
-    });
+    const escreve = (sel, txt) => { const x = $(sel); if (x) x.textContent = txt; };
+    Abordagens.pendentesHoje().then((n) => escreve("#ini-follow", num(n))).catch(() => escreve("#ini-follow", "-"));
+    Ideias.contar().then((n) => escreve("#ini-ideias", num(n))).catch(() => escreve("#ini-ideias", "-"));
+    Gestao.resumo().then((g) => {
+      escreve("#ini-tarefas", num(g.tarefasHoje));
+      escreve("#ini-recebido", Gestao.reais(g.recebidoMes));
+      escreve("#ini-areceber", g.aReceber ? `⏳ ${Gestao.reais(g.aReceber)} a receber` : "");
+      const caixa = $("#ini-metas");
+      if (caixa && g.metas.length) caixa.innerHTML = `<h2 class="secao-titulo">🎯 Suas metas</h2><div class="metas-mini">${g.metas.map(Gestao.cartaoMetaMini).join("")}</div>`;
+    }).catch(() => {});
     const r = await Dados.resumo();
-    $("#kpi-leads").textContent = num(r.leads);
-    $("#kpi-ativas").textContent = num(r.ativas);
-    $("#kpi-dms").textContent = num(r.dms7);
+    escreve("#kpi-leads", num(r.leads));
+    escreve("#kpi-ativas", num(r.ativas));
+    escreve("#kpi-dms", num(r.dms7));
   }
-
   function cartaoKpi(titulo, id, sub) {
     return `<div class="card kpi"><span class="rotulo">${titulo}</span><div class="kpi-valor" id="${id}">0</div><div class="kpi-sub">${sub}</div></div>`;
   }
@@ -105,14 +110,14 @@ window.App = (() => {
     el.innerHTML = `
       <div class="cabecalho">
         <div>
-          <h1>Instagram</h1>
+          <h1>📸 Instagram</h1>
           <p class="muted">Acompanhe sua conta e crie respostas automáticas no direct.</p>
         </div>
       </div>
       <div class="abas" role="tablist">
-        <button class="aba ${aba === "metricas" ? "ativa" : ""}" data-aba="metricas" role="tab">Métricas</button>
-        <button class="aba ${aba === "automacoes" ? "ativa" : ""}" data-aba="automacoes" role="tab">Automações</button>
-        <button class="aba ${aba === "leads" ? "ativa" : ""}" data-aba="leads" role="tab">Leads</button>
+        <button class="aba ${aba === "metricas" ? "ativa" : ""}" data-aba="metricas" role="tab">📊 Métricas</button>
+        <button class="aba ${aba === "automacoes" ? "ativa" : ""}" data-aba="automacoes" role="tab">🤖 Automações</button>
+        <button class="aba ${aba === "leads" ? "ativa" : ""}" data-aba="leads" role="tab">👥 Leads</button>
       </div>
       <div id="aba-conteudo"></div>`;
     el.querySelectorAll(".aba").forEach((b) =>
@@ -135,10 +140,16 @@ window.App = (() => {
     $("#menu").classList.remove("aberto");
     $("#menu-toggle").setAttribute("aria-expanded", "false");
     const el = $("#rota");
+    // cada tela coloca os próprios cliques; limpa os da tela anterior
+    el.onclick = el.onchange = el.oninput = null;
     if (rota === "calendario") telaCalendario(el);
     else if (rota === "instagram") telaInstagram(el, sub);
     else if (rota === "abordagens") Abordagens.render(el, sub);
     else if (rota === "portfolio") Portfolio.render(el, sub);
+    else if (rota === "ideias") Ideias.render(el);
+    else if (rota === "tarefas") Gestao.telaTarefas(el);
+    else if (rota === "metas") Gestao.telaMetas(el);
+    else if (rota === "financeiro") Gestao.telaFinanceiro(el);
     else telaInicio(el);
     window.scrollTo(0, 0);
   }

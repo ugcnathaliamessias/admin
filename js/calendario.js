@@ -55,7 +55,7 @@ window.Calendario = (() => {
     return `
       <div class="cabecalho">
         <div>
-          <h1>Calendário</h1>
+          <h1>📅 Calendário</h1>
           <p class="muted">Planeje seus conteúdos do mês e acompanhe cada um até publicar.</p>
         </div>
         <button class="btn btn-primario" data-acao="novo">${icone("mais", 16)} Novo conteúdo</button>

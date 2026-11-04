@@ -490,6 +490,63 @@ window.Dados = (() => {
   }
 
   // =================================================================
+  // TABELAS SIMPLES (tarefas, metas, financeiro, ideias): ler, salvar, apagar
+  // No teste local, cada tabela fica no navegador.
+  // =================================================================
+  const chaveLocal = (tabela) => `painel_${tabela}_teste`;
+
+  async function listar(tabela) {
+    if (!usaSupabase()) return ler(chaveLocal(tabela), []);
+    try {
+      const { data, error } = await sb.from(tabela).select("*").order("created_at");
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.warn(`Não deu pra ler ${tabela}:`, e);
+      return null;
+    }
+  }
+
+  async function salvar(tabela, row) {
+    if (!usaSupabase()) {
+      const lista = ler(chaveLocal(tabela), []);
+      const agora = new Date().toISOString();
+      const velho = lista.find((r) => r.id === row.id);
+      const novo = { ...velho, ...row, id: row.id || cryptoId(), created_at: velho?.created_at || agora, updated_at: agora };
+      const i = lista.findIndex((r) => r.id === novo.id);
+      if (i >= 0) lista[i] = novo; else lista.push(novo);
+      if (!gravar(chaveLocal(tabela), lista)) return { erro: "Não deu pra salvar neste navegador." };
+      return { ok: true, row: novo, local: true };
+    }
+    try {
+      const corpo = { ...row };
+      if (!corpo.id) delete corpo.id;
+      delete corpo.created_at;
+      delete corpo.updated_at;
+      const { data, error } = await sb.from(tabela).upsert(corpo).select().single();
+      if (error) throw error;
+      return { ok: true, row: data };
+    } catch (e) {
+      console.warn(e);
+      return { erro: "Não foi possível salvar. Confira se o 14_gestao_e_ideias.sql foi rodado." };
+    }
+  }
+
+  async function apagar_(tabela, id) {
+    if (!usaSupabase()) {
+      gravar(chaveLocal(tabela), ler(chaveLocal(tabela), []).filter((r) => r.id !== id));
+      return { ok: true };
+    }
+    try {
+      const { error } = await sb.from(tabela).delete().eq("id", id);
+      if (error) throw error;
+      return { ok: true };
+    } catch {
+      return { erro: "Não foi possível apagar agora." };
+    }
+  }
+
+  // =================================================================
   // PORTFÓLIO (tabela port_dados: uma linha por seção, com a lista em JSON)
   // =================================================================
   const CHAVE_PORT_LOCAL = "painel_portfolio_teste";
@@ -552,6 +609,7 @@ window.Dados = (() => {
   return {
     ehLocal, configurado, usaSupabase,
     lerPortfolio, salvarPortfolio, enviarImagemPortfolio,
+    listar, salvar, apagar: apagar_,
     listarAbord, salvarAbord, salvarVariosAbord, apagarAbord,
     listarPosts, salvarPost, apagarPost,
     listarLeads, excluirLead,

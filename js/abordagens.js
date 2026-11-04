@@ -17,11 +17,11 @@ window.Abordagens = (() => {
     { v: "vaiterestrada", t: "Vai Ter Estrada" },
   ];
   const ABAS = [
-    { v: "lista", t: "Lista do dia" },
-    { v: "controle", t: "Controle" },
-    { v: "marcas", t: "Marcas" },
-    { v: "plataformas", t: "Plataformas" },
-    { v: "followups", t: "Follow-ups" },
+    { v: "lista", t: "🚀 Lista do dia" },
+    { v: "controle", t: "📋 Controle" },
+    { v: "marcas", t: "💬 Modelos" },
+    { v: "plataformas", t: "🧩 Plataformas" },
+    { v: "followups", t: "🔁 Follow-ups" },
   ];
   const TIPOS = {
     primeiro: "Primeiro contato",
@@ -148,7 +148,7 @@ window.Abordagens = (() => {
     return `
       <div class="cabecalho">
         <div>
-          <h1>Abordagens</h1>
+          <h1>🤝 Marcas &amp; prospecção</h1>
           <p class="muted">Seus textos pra marcas e plataformas, e o controle de quem já recebeu mensagem.</p>
         </div>
         <div class="abord-perfis" role="group" aria-label="Perfil">

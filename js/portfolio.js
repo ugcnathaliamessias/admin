@@ -10,11 +10,11 @@ window.Portfolio = (() => {
 
   const SITE = "https://ugcnathaliamessias.github.io/portfolio/";
   const ABAS = [
-    { v: "videos", t: "Vídeos" },
-    { v: "nichos", t: "Nichos" },
-    { v: "marcas", t: "Marcas" },
-    { v: "fotos", t: "Fotos" },
-    { v: "capa", t: "Capa" },
+    { v: "videos", t: "🎬 Vídeos" },
+    { v: "nichos", t: "🏷️ Nichos" },
+    { v: "marcas", t: "⭐ Marcas" },
+    { v: "fotos", t: "📷 Fotos" },
+    { v: "capa", t: "✨ Capa" },
   ];
   const FORMATOS = ["Anúncio", "Review", "Demonstração", "Storytelling", "Receita", "Unboxing", "Editorial", "ASMR", "Vlog", "Problema x solução", "Tutorial", "Antes e depois"];
 
@@ -53,7 +53,7 @@ window.Portfolio = (() => {
     return `
       <div class="cabecalho">
         <div>
-          <h1>Portfólio</h1>
+          <h1>🖼️ Portfólio</h1>
           <p class="muted">O que você mudar aqui aparece no seu site em segundos.</p>
         </div>
         <a class="btn" href="${SITE}" target="_blank" rel="noopener">${icone("link", 15)} Ver site</a>
