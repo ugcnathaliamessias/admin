@@ -414,6 +414,26 @@ window.Dados = (() => {
     }
   }
 
+  // Salva várias linhas de uma vez (Lista do dia). Devolve { ok, rows } ou { erro }
+  async function salvarVariosAbord(tabela, rows) {
+    if (!usaSupabase()) {
+      const lista = ler(CHAVES_ABORD[tabela], []);
+      const agora = new Date().toISOString();
+      const novos = rows.map((r, i) => ({ ...r, id: cryptoId(), created_at: new Date(Date.now() + i).toISOString(), updated_at: agora }));
+      if (!gravar(CHAVES_ABORD[tabela], lista.concat(novos))) return { erro: "Não deu pra salvar neste navegador." };
+      return { ok: true, rows: novos, local: true };
+    }
+    try {
+      const corpo = rows.map((r) => { const c = { ...r }; delete c.id; delete c.created_at; delete c.updated_at; return c; });
+      const { data, error } = await sb.from(tabela).insert(corpo).select();
+      if (error) throw error;
+      return { ok: true, rows: data || [] };
+    } catch (e) {
+      console.warn(e);
+      return { erro: "Não foi possível salvar a lista. Confira se o 09_abordagens_lista.sql foi rodado." };
+    }
+  }
+
   async function apagarAbord(tabela, id) {
     if (!usaSupabase()) {
       gravar(CHAVES_ABORD[tabela], ler(CHAVES_ABORD[tabela], []).filter((r) => r.id !== id));
@@ -430,7 +450,7 @@ window.Dados = (() => {
 
   return {
     ehLocal, configurado, usaSupabase,
-    listarAbord, salvarAbord, apagarAbord,
+    listarAbord, salvarAbord, salvarVariosAbord, apagarAbord,
     listarPosts, salvarPost, apagarPost,
     listarLeads, excluirLead,
     sessao, entrar, sair, aoExpirar,
