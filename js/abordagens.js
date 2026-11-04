@@ -167,7 +167,9 @@ window.Abordagens = (() => {
     else if (aba === "controle") corpo = telaControle();
     else if (aba === "marcas") corpo = secaoModelos("primeiro", "Primeiro contato", "A mensagem que vai pra todas as marcas na DM: apresenta você, explica o UGC, pergunta se conhecem e pede o contato de quem cuida de conteúdo.")
       + secaoModelos("conversa", "Depois que a marca responde", "Quando passarem o contato do time (ou disserem \"pode mandar aqui\"): a ideia curta e o pedido pra mandar a proposta.");
-    else if (aba === "plataformas") corpo = secaoModelos("plataforma", "Plataformas", `Textos pra candidaturas dentro de plataformas, com limite de ${LIMITE_PLATAFORMA} caracteres.`);
+    else if (aba === "plataformas") corpo = `
+      <p class="alerta alerta-atencao abord-dica-plat"><b>Dica da Lara:</b> nas plataformas, a marca vê as inscrições por ordem de chegada. Ligue as notificações do app da plataforma e se inscreva assim que a campanha aparecer, com o texto pronto (sem ideia nem roteiro). Use o botão <b>Copiar</b> do cartão.</p>`
+      + secaoModelos("plataforma", "Plataformas", `Textos prontos pra se inscrever rápido nas campanhas, com limite de ${LIMITE_PLATAFORMA} caracteres.`);
     else corpo = secaoModelos("followup", "Follow-ups", "Mensagens curtas pra quando a marca não respondeu. O Controle sugere a certa pra cada momento.");
     el.innerHTML = cabecalho() + corpo;
   }
@@ -415,7 +417,8 @@ window.Abordagens = (() => {
         ${sit ? `<span class="chip">${esc(sit)}</span>` : ""}
         <p class="abord-texto">${destacar(m.texto)}</p>
         <div class="abord-modelo-acoes">
-          <button class="btn btn-sm btn-primario" data-acao="usar" data-id="${esc(m.id)}">${icone("envio", 14)} Usar</button>
+          <button class="btn btn-sm btn-primario" data-acao="copiar-rapido" data-id="${esc(m.id)}" title="Copia na hora, com os campos que você já preencheu antes">${icone("clipe", 14)} Copiar</button>
+          <button class="btn btn-sm" data-acao="usar" data-id="${esc(m.id)}">${icone("envio", 14)} Preencher</button>
           <button class="btn btn-sm" data-acao="editar-modelo" data-id="${esc(m.id)}">${icone("lapis", 14)} Editar</button>
         </div>
       </article>`;
@@ -444,6 +447,15 @@ window.Abordagens = (() => {
     if (a === "novo-modelo") return formModelo({ tipo: b.dataset.tipo });
     if (a === "editar-modelo") return formModelo(modelos.find((m) => m.id === b.dataset.id) || {});
     if (a === "usar") { const m = modelos.find((x) => x.id === b.dataset.id); if (m) janelaUsar(m); }
+    if (a === "copiar-rapido") {
+      const m = modelos.find((x) => x.id === b.dataset.id);
+      if (!m) return;
+      const texto = preencher(m.texto, lerLocal(chaveVars(), {}));
+      const faltando = camposDe(texto);
+      // se tiver campo sem preencher, abre a janela pra completar
+      if (faltando.length) return janelaUsar(m);
+      return copiar(texto, []);
+    }
   }
 
   // campos da lista que salvam enquanto digita (sem redesenhar a tela)
