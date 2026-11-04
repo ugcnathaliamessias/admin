@@ -577,6 +577,38 @@ textarea.link-grande { min-height: 70px; font-family: ui-monospace, SFMono-Regul
 .atalho-alerta { color: var(--rosa) !important; font-weight: 600; }
 
 /* =====================================================================
+   PORTFÓLIO
+   ===================================================================== */
+.port-filtro { display: flex; flex-direction: column; gap: 4px; min-width: 220px; }
+.port-lista { padding: 0; }
+.port-item { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-top: 1px solid var(--borda); }
+.port-item:first-child { border-top: 0; }
+.port-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.port-info strong { font-size: 14.5px; }
+.port-link { font-size: 12px; color: var(--texto-3); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.port-link:hover { color: var(--destaque); }
+.port-thumb { width: 56px; height: 70px; object-fit: cover; border-radius: 8px; background: var(--superficie-2); flex-shrink: 0; }
+.port-thumb-video { width: 48px; height: 84px; }
+.port-acoes { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.port-acoes .btn-icone[disabled] { opacity: .3; cursor: default; }
+.port-acoes .btn-perigo { color: var(--erro); }
+.port-selo { width: 56px; height: 56px; border-radius: 50%; background: #fff; border: 1px solid var(--borda); display: grid; place-items: center; overflow: hidden; flex-shrink: 0; }
+.port-selo img { max-width: 62%; max-height: 62%; object-fit: contain; }
+.port-selo span { font-size: 10px; font-weight: 700; text-align: center; padding: 4px; }
+.port-selo-previa { display: flex; align-items: center; gap: 12px; margin: 4px 0 12px; }
+.port-fundo { display: flex; align-items: center; gap: 8px; }
+.port-fundo input[type=color] { width: 40px; height: 30px; padding: 0; border: 1px solid var(--borda); border-radius: 6px; background: none; }
+.port-upload { display: flex; align-items: center; gap: 12px; }
+.port-upload-previa { width: 72px; height: 72px; border-radius: 10px; border: 1px dashed var(--borda-forte); display: grid; place-items: center; overflow: hidden; background: var(--fundo); font-size: 11px; text-align: center; }
+.port-upload-previa img { width: 100%; height: 100%; object-fit: contain; }
+.port-previa-video { margin: -4px 0 12px; }
+.port-previa-video img { width: 90px; border-radius: 8px; }
+.port-en { margin-bottom: 12px; }
+.port-en summary { cursor: pointer; font-size: 13px; color: var(--texto-2); margin-bottom: 8px; }
+.port-capa { padding: 18px; }
+.port-capa h2 { margin-bottom: 4px; }
+
+/* =====================================================================
    RESPONSIVO
    ===================================================================== */
 @media (max-width: 1000px) {
@@ -639,5 +671,9 @@ textarea.link-grande { min-height: 70px; font-family: ui-monospace, SFMono-Regul
   .abord-fila-acoes { justify-content: flex-start; }
   .abord-lista-add-acoes { flex-direction: column; align-items: stretch; }
   .abord-lista-modelo { min-width: 0; width: 100%; }
+  /* portfólio */
+  .port-item { flex-wrap: wrap; }
+  .port-acoes { width: 100%; justify-content: flex-end; }
+  .port-filtro { min-width: 0; width: 100%; }
   .abord-perfil { flex: 1; }
 }
