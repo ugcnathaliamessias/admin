@@ -138,6 +138,7 @@ window.App = (() => {
     if (rota === "calendario") telaCalendario(el);
     else if (rota === "instagram") telaInstagram(el, sub);
     else if (rota === "abordagens") Abordagens.render(el, sub);
+    else if (rota === "portfolio") Portfolio.render(el, sub);
     else telaInicio(el);
     window.scrollTo(0, 0);
   }

@@ -448,8 +448,69 @@ window.Dados = (() => {
     }
   }
 
+  // =================================================================
+  // PORTFÓLIO (tabela port_dados: uma linha por seção, com a lista em JSON)
+  // =================================================================
+  const CHAVE_PORT_LOCAL = "painel_portfolio_teste";
+
+  async function lerPortfolio() {
+    if (!usaSupabase()) return ler(CHAVE_PORT_LOCAL, {});
+    try {
+      const { data, error } = await sb.from("port_dados").select("chave, valor");
+      if (error) throw error;
+      return Object.fromEntries((data || []).map((l) => [l.chave, l.valor]));
+    } catch (e) {
+      console.warn("Não deu pra ler o portfólio:", e);
+      return null;
+    }
+  }
+
+  async function salvarPortfolio(chave, valor) {
+    if (!usaSupabase()) {
+      const tudo = ler(CHAVE_PORT_LOCAL, {});
+      tudo[chave] = valor;
+      if (!gravar(CHAVE_PORT_LOCAL, tudo)) return { erro: "Não deu pra salvar neste navegador." };
+      return { ok: true, local: true };
+    }
+    try {
+      const { error } = await sb.from("port_dados").upsert({ chave, valor });
+      if (error) throw error;
+      return { ok: true };
+    } catch (e) {
+      console.warn(e);
+      return { erro: "Não foi possível salvar no portfólio. Confira se o 11_portfolio_e_plataformas.sql foi rodado." };
+    }
+  }
+
+  // Envia uma imagem (logo ou foto) pra pasta "portfolio" e devolve o link público
+  async function enviarImagemPortfolio(arquivo, pasta) {
+    if (!/^image\//.test(arquivo?.type || "")) return { erro: "Escolha um arquivo de imagem (jpg, png, webp ou svg)." };
+    if (arquivo.size > 5 * 1024 * 1024) return { erro: "A imagem passa de 5 MB. Diminua antes de enviar." };
+    if (!usaSupabase()) {
+      // teste local: guarda a imagem no próprio navegador
+      return await new Promise((ok) => {
+        const leitor = new FileReader();
+        leitor.onload = () => ok({ ok: true, url: leitor.result, local: true });
+        leitor.onerror = () => ok({ erro: "Não deu pra ler a imagem." });
+        leitor.readAsDataURL(arquivo);
+      });
+    }
+    try {
+      const nome = arquivo.name.toLowerCase().replace(/[^\w.\-]+/g, "-");
+      const caminho = `${pasta}/${Date.now()}-${nome}`;
+      const up = await sb.storage.from("portfolio").upload(caminho, arquivo, { contentType: arquivo.type, cacheControl: "31536000" });
+      if (up.error) throw up.error;
+      const { data } = sb.storage.from("portfolio").getPublicUrl(caminho);
+      return { ok: true, url: data.publicUrl };
+    } catch (e) {
+      console.warn(e);
+      return { erro: "Não foi possível enviar a imagem agora." };
+    }
+  }
+
   return {
     ehLocal, configurado, usaSupabase,
+    lerPortfolio, salvarPortfolio, enviarImagemPortfolio,
     listarAbord, salvarAbord, salvarVariosAbord, apagarAbord,
     listarPosts, salvarPost, apagarPost,
     listarLeads, excluirLead,
