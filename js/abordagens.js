@@ -137,6 +137,7 @@ window.Abordagens = (() => {
     base = opts.base || "#abordagens";
     perfilFixo = opts.perfil || null;
     perfil = perfilFixo || lerLocal(CHAVE_PERFIL, "nathalia");
+    App.temaVte(perfil === "vaiterestrada");
     el.onclick = aoClicar;
     el.onchange = aoMudar;
     el.oninput = aoDigitar;
@@ -203,7 +204,10 @@ window.Abordagens = (() => {
     const meta = Number(lerLocal(CHAVE_META, 50)) || 50;
     const modelo = modeloDaLista();
     const valores = lerLocal(chaveVars(), {});
-    const extras = modelo ? camposDe(modelo.texto).filter((k) => k !== "marca") : [];
+    // marca e produto são de cada marca (ficam na linha); o resto vale pra lista toda
+    const camposModelo = modelo ? camposDe(modelo.texto) : [];
+    const pedeProduto = camposModelo.includes("produto");
+    const extras = camposModelo.filter((k) => k !== "marca" && k !== "produto");
 
     return `
       <div class="card abord-lista-add">
@@ -242,6 +246,7 @@ window.Abordagens = (() => {
                 ${notaCurta(c) ? `<span class="abord-fila-nota" title="${esc(notaCurta(c))}">${esc(notaCurta(c))}</span>` : ""}
               </div>
               <input type="text" class="abord-fila-nome" data-lista-nome data-id="${esc(c.id)}" value="${esc(c.marca)}" placeholder="Nome da marca" aria-label="Nome da marca @${esc(arroba(c))}">
+              ${pedeProduto ? `<input type="text" class="abord-fila-nome abord-fila-produto" data-lista-produto data-id="${esc(c.id)}" value="${esc(c.produto || "")}" placeholder="Produto" aria-label="Produto de @${esc(arroba(c))}">` : ""}
               <div class="abord-fila-acoes">
                 <button class="btn btn-sm" data-acao="lista-copiar" data-id="${esc(c.id)}" ${modelo ? "" : "disabled"}>${icone("clipe", 14)} Copiar e abrir</button>
                 <button class="btn btn-sm btn-primario" data-acao="lista-enviei" data-id="${esc(c.id)}">Enviei</button>
@@ -301,7 +306,18 @@ window.Abordagens = (() => {
     const c = contatos.find((x) => x.id === id);
     const modelo = modeloDaLista();
     if (!c || !modelo) return;
+    // salva o que estiver digitado na linha antes de copiar
+    const linha = (sel) => el.querySelector(`${sel}[data-id="${CSS.escape(id)}"]`)?.value.trim();
+    const nomeDigitado = linha("[data-lista-nome]");
+    const produtoDigitado = linha("[data-lista-produto]");
+    if ((nomeDigitado && nomeDigitado !== c.marca) || (produtoDigitado !== undefined && produtoDigitado !== (c.produto || ""))) {
+      const r = await Dados.salvarAbord("abord_contatos", limparContato({
+        ...c, marca: nomeDigitado || c.marca, produto: produtoDigitado ?? c.produto,
+      }));
+      if (!r.erro) Object.assign(c, r.row);
+    }
     const valores = { ...lerLocal(chaveVars(), {}), marca: c.marca };
+    if (c.produto) valores.produto = c.produto;
     const texto = preencher(modelo.texto, valores);
     await copiar(texto, camposDe(texto));
     if (c.instagram) window.open(linkPerfil(arroba(c)), "_blank", "noopener");
@@ -503,6 +519,16 @@ window.Abordagens = (() => {
       const novo = nome.value.trim();
       if (!c || !novo || novo === c.marca) return;
       const r = await Dados.salvarAbord("abord_contatos", limparContato({ ...c, marca: novo }));
+      if (r.erro) return toast(r.erro, "erro");
+      Object.assign(c, r.row);
+      return;
+    }
+    const prod = e.target.closest("[data-lista-produto]");
+    if (prod) {
+      const c = contatos.find((x) => x.id === prod.dataset.id);
+      const novo = prod.value.trim();
+      if (!c || novo === (c.produto || "")) return;
+      const r = await Dados.salvarAbord("abord_contatos", limparContato({ ...c, produto: novo }));
       if (r.erro) return toast(r.erro, "erro");
       Object.assign(c, r.row);
       return;

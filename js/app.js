@@ -51,6 +51,12 @@ window.App = (() => {
   function perfilAtual() {
     try { return JSON.parse(localStorage.getItem(CHAVE_PERFIL)) === "vaiterestrada" ? "vaiterestrada" : "nathalia"; } catch { return "nathalia"; }
   }
+  // liga/desliga as cores do Vai Ter Estrada no painel todo
+  function temaVte(ligado) {
+    if (ligado) document.documentElement.dataset.tema = "vte"; else delete document.documentElement.dataset.tema;
+    const corBarra = document.querySelector('meta[name="theme-color"]');
+    if (corBarra) corBarra.content = ligado ? "#4D5B2F" : "#860120";
+  }
   function seletorPerfil() {
     const atual = perfilAtual();
     return `<div class="abord-perfis" role="group" aria-label="Perfil">
@@ -159,6 +165,8 @@ window.App = (() => {
     $("#menu").classList.remove("aberto");
     $("#menu-toggle").setAttribute("aria-expanded", "false");
     const el = $("#rota");
+    // telas com o seletor de perfil ganham as cores do Vai Ter Estrada quando ele está escolhido
+    temaVte(["instagram", "portfolio", "abordagens"].includes(rota) && perfilAtual() === "vaiterestrada");
     // cada tela coloca os próprios cliques; limpa os da tela anterior
     el.onclick = el.onchange = el.oninput = null;
     if (rota === "calendario") telaCalendario(el);
@@ -305,5 +313,5 @@ window.App = (() => {
     }
   }
 
-  return { iniciar, toast, esc, icone, num, $, perfilAtual, seletorPerfil };
+  return { iniciar, toast, esc, icone, num, $, perfilAtual, seletorPerfil, temaVte };
 })();
