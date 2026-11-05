@@ -703,6 +703,53 @@ textarea.link-grande { min-height: 70px; font-family: ui-monospace, SFMono-Regul
 .tar-prazo { font-size: 12.5px; color: var(--texto-2); white-space: nowrap; }
 .tar-prazo.atrasada { color: #B91C1C; font-weight: 600; }
 .tar-feitas summary { cursor: pointer; font-weight: 600; margin: 8px 0; color: var(--texto-2); }
+.tar-cor { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.linha-3 { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 12px; }
+.tar-cores { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.tar-cor-op { position: relative; cursor: pointer; }
+.tar-cor-op input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.tar-cor-op span { display: block; width: 30px; height: 30px; border-radius: 50%; border: 3px solid transparent; box-shadow: 0 0 0 1px var(--borda-forte); transition: transform .12s; }
+.tar-cor-op input:checked + span { border-color: var(--superficie); box-shadow: 0 0 0 2px var(--texto); transform: scale(1.08); }
+.tar-cor-op input:focus-visible + span { outline: 2px solid var(--destaque); outline-offset: 3px; }
+.tar-feita-op { flex-direction: row !important; align-items: center; gap: 8px; align-self: end; padding-bottom: 10px; font-weight: 600; }
+.link-btn { background: none; border: 0; padding: 0; color: var(--destaque); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
+
+/* 🗓️ agenda da semana */
+.sem-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 4px 0 6px; }
+.sem-nav { display: flex; align-items: center; gap: 6px; }
+.sem-nav .btn-icone { font-size: 22px; line-height: 1; width: 34px; height: 34px; }
+.sem-titulo { font-family: "Inter Tight", sans-serif; font-size: 17px; color: var(--destaque); }
+.sem-dica { font-size: 13px; margin: 0 0 12px; }
+.sem-rolagem { padding: 0; overflow-x: auto; margin-bottom: 14px; }
+.sem-grade { display: grid; grid-template-columns: 54px repeat(7, minmax(92px, 1fr)); min-width: 720px; }
+.sem-canto, .sem-rotulo-todo { border-bottom: 1px solid var(--borda); }
+.sem-dia-cab { text-align: center; padding: 10px 4px 8px; border-bottom: 1px solid var(--borda); display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.sem-dia-cab span { font-size: 12px; font-weight: 600; color: var(--texto-2); text-transform: uppercase; letter-spacing: .04em; }
+.sem-dia-cab b { font-family: "Inter Tight", sans-serif; font-size: 18px; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; }
+.sem-dia-cab.hoje b { background: var(--destaque); color: #fff; }
+.sem-rotulo-todo { font-size: 11px; color: var(--texto-3); padding: 8px 6px; text-align: right; }
+.sem-todo { min-height: 40px; padding: 5px 4px; border-bottom: 1px solid var(--borda); border-left: 1px solid var(--borda); display: flex; flex-direction: column; gap: 4px; cursor: pointer; }
+.sem-chip, .sem-bloco { border: 0; font: inherit; text-align: left; cursor: pointer; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.sem-chip { font-size: 12px; font-weight: 600; padding: 5px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sem-horas { position: sticky; }
+/* a coluna das horas fica parada quando a semana rola pro lado */
+.sem-horas, .sem-canto, .sem-rotulo-todo { position: sticky; left: 0; z-index: 3; background: var(--superficie); }
+.sem-horas span { position: absolute; right: 8px; transform: translateY(-50%); font-size: 11px; color: var(--texto-3); background: var(--superficie); padding: 0 2px; }
+.sem-horas span:first-child { transform: none; }
+.sem-coluna {
+  position: relative; border-left: 1px solid var(--borda); cursor: pointer;
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--px-hora) - 1px), var(--borda) calc(var(--px-hora) - 1px), var(--borda) var(--px-hora));
+}
+.sem-coluna.par { background-color: color-mix(in srgb, var(--superficie-2) 55%, transparent); }
+@media (max-width: 560px) { .linha-3 { grid-template-columns: 1fr 1fr; } .linha-3 .campo:first-child { grid-column: 1 / -1; } }
+.sem-coluna.hoje { background-color: color-mix(in srgb, var(--rosa) 18%, transparent); }
+.sem-coluna:hover { background-color: color-mix(in srgb, var(--destaque) 5%, transparent); }
+.sem-bloco { position: absolute; padding: 6px 8px; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 2px; transition: transform .12s, box-shadow .12s; }
+.sem-bloco:hover, .sem-chip:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,.14); z-index: 2; }
+.sem-bloco-titulo { font-size: 12.5px; font-weight: 600; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.sem-bloco-hora { font-size: 11px; opacity: .85; }
+.sem-bloco.feita, .sem-chip.feita { opacity: .5; }
+.sem-bloco.feita .sem-bloco-titulo, .sem-chip.feita { text-decoration: line-through; }
 
 /* =====================================================================
    GESTÃO: METAS
