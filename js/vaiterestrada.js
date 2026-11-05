@@ -377,13 +377,30 @@ window.VaiTerEstrada = (() => {
       </div>
 
       <div class="card vte-form">
-        <div class="vte-form-cab"><h3>💬 Prints de comentários</h3><label class="btn btn-sm vte-enviar">📤 Enviar print<input type="file" accept="image/*" data-enviar-coment hidden></label></div>
-        <div class="vte-coments">
-          ${(c.comentarios || []).map((src, i) => `
-            <div class="vte-coment" data-coment="${esc(src)}">
-              <img src="${esc(urlSite(src))}" alt="" loading="lazy">
-              <button class="btn-icone btn-perigo" data-acao="coment-apagar" data-i="${i}" aria-label="Tirar print" title="Tirar">${icone("x", 14)}</button>
-            </div>`).join("") || `<p class="muted">Nenhum print ainda.</p>`}
+        <div class="vte-form-cab"><h3>💬 Comentários de destaque</h3>
+          <span class="vte-cab-acoes">
+            <button class="btn btn-sm" data-acao="coment-novo">${icone("mais", 14)} Comentário</button>
+            <label class="btn btn-sm vte-enviar">📤 Print<input type="file" accept="image/*" data-enviar-coment hidden></label>
+          </span></div>
+        <p class="muted" style="margin-bottom:10px">Copie do Instagram o @ e o texto. No site eles viram cartões passando devagar. A etiqueta mostra pra marca o que o comentário prova (ex.: 🛒 Quer comprar).</p>
+        <datalist id="vte-tags">${["🛒 Quer comprar", "⛺ Deu vontade de acampar", "📍 Quer conhecer o lugar", "👏 Elogio", "💡 Gostou da dica", "💡 Vai usar a dica", "💬 Se identificou"].map((t) => `<option value="${t}">`).join("")}</datalist>
+        <div class="vte-coments-lista">
+          ${(c.comentarios || []).map((k, i) => typeof k === "string" ? `
+            <div class="vte-coment-linha" data-coment-tipo="print" data-src="${esc(k)}">
+              <img class="vte-coment-print" src="${esc(urlSite(k))}" alt="" loading="lazy">
+              <span class="muted" style="flex:1">Print (imagem)</span>
+              <button class="btn-icone btn-perigo" data-acao="coment-apagar" data-i="${i}" aria-label="Tirar" title="Tirar">${icone("lixo", 15)}</button>
+            </div>` : `
+            <div class="vte-coment-linha" data-coment-tipo="cartao">
+              <div class="vte-coment-campos">
+                <div class="vte-linha-campos">
+                  <label class="campo"><span class="rotulo">@ de quem comentou</span><input type="text" data-ck="usuario" value="${esc(k.usuario)}"></label>
+                  <label class="campo"><span class="rotulo">Etiqueta</span><input type="text" list="vte-tags" data-ck="tag" value="${esc(k.tag)}"></label>
+                </div>
+                <label class="campo"><span class="rotulo">Comentário</span><textarea rows="2" data-ck="texto">${esc(k.texto)}</textarea></label>
+              </div>
+              <button class="btn-icone btn-perigo" data-acao="coment-apagar" data-i="${i}" aria-label="Tirar" title="Tirar">${icone("lixo", 15)}</button>
+            </div>`).join("") || `<p class="muted">Nenhum comentário ainda.</p>`}
         </div>
       </div>
 
@@ -432,13 +449,18 @@ window.VaiTerEstrada = (() => {
         return { marca: g("marca"), formato: g("formato"), video: g("video"), capa: g("capa") };
       });
     }
-    c.comentarios = [...el.querySelectorAll("[data-coment]")].map((x) => x.dataset.coment).filter(Boolean);
+    c.comentarios = [...el.querySelectorAll("[data-coment-tipo]")].map((x) => {
+      if (x.dataset.comentTipo === "print") return x.dataset.src;
+      const g = (k) => x.querySelector(`[data-ck="${k}"]`)?.value.trim() || "";
+      return { usuario: g("usuario").replace(/^@/, ""), texto: g("texto"), tag: g("tag") };
+    }).filter((k) => typeof k !== "string" || k);
     return c;
   }
 
   async function salvar() {
     conteudo = coletar();
     conteudo.parcerias = (conteudo.parcerias || []).filter((p) => p.marca || p.video);
+    conteudo.comentarios = (conteudo.comentarios || []).filter((k) => typeof k === "string" || k.texto);
     const r = await Dados.salvarVte("conteudo", conteudo);
     if (r.erro) return toast(r.erro, "erro");
     dados.conteudo = conteudo;
@@ -499,6 +521,14 @@ window.VaiTerEstrada = (() => {
       if (j < 0 || j >= l.length) return;
       [l[i], l[j]] = [l[j], l[i]];
       return desenhar();
+    }
+    if (a === "coment-novo") {
+      conteudo = coletar();
+      conteudo.comentarios = [...(conteudo.comentarios || []), { usuario: "", texto: "", tag: "" }];
+      desenhar();
+      const linhas = el.querySelectorAll('[data-coment-tipo="cartao"]');
+      linhas[linhas.length - 1]?.querySelector('[data-ck="usuario"]').focus();
+      return;
     }
     if (a === "coment-apagar") {
       conteudo = coletar();
