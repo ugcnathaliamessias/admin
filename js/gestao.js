@@ -45,32 +45,179 @@ window.Gestao = (() => {
   // =================================================================
   const PRIORIDADES = { alta: { e: "🔴", t: "Alta" }, media: { e: "🟡", t: "Média" }, baixa: { e: "🟢", t: "Baixa" } };
   const pesoPri = { alta: 0, media: 1, baixa: 2 };
+  // cores dos blocos da agenda (f = fundo, t = texto)
+  const CORES = [
+    { v: "rosa", n: "Rosa", f: "#F9B9C4", t: "#5C0016" },
+    { v: "coral", n: "Coral", f: "#F2877F", t: "#FFFFFF" },
+    { v: "verde", n: "Verde", f: "#4E6B5B", t: "#FFFFFF" },
+    { v: "salvia", n: "Sálvia", f: "#7C9885", t: "#FFFFFF" },
+    { v: "esmeralda", n: "Esmeralda", f: "#22896A", t: "#FFFFFF" },
+    { v: "laranja", n: "Laranja", f: "#F6A85A", t: "#4A2200" },
+    { v: "azul", n: "Azul", f: "#A6C9DD", t: "#123447" },
+    { v: "bordo", n: "Bordô", f: "#860120", t: "#FFFFFF" },
+  ];
+  const corDe = (t) => CORES.find((c) => c.v === t.cor) || CORES[0];
+  const DIAS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+  const PX_HORA = 52; // altura de 1 hora na agenda
+  const CHAVE_VISAO = "painel_tar_visao";
+  const minutos = (h) => { const m = String(h || "").match(/^(\d{1,2}):(\d{2})/); return m ? Number(m[1]) * 60 + Number(m[2]) : null; };
+  const hhmm = (min) => `${pad(Math.floor(min / 60) % 24)}:${pad(min % 60)}`;
+  const horario = (t) => {
+    const s = minutos(t.hora_inicio);
+    if (s == null) return "";
+    const e = minutos(t.hora_fim);
+    return e != null && e > s ? `${hhmm(s)}–${hhmm(e)}` : hhmm(s);
+  };
+  function segundaDe(d) {
+    const x = new Date(d); x.setHours(0, 0, 0, 0);
+    x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+    return x;
+  }
+  const somaDias = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+
   let tarefas = [];
+  let visao = "semana";
+  let semanaIni = segundaDe(new Date());
 
   async function telaTarefas(el) {
     el.innerHTML = `<div class="cabecalho"><div><h1>✅ Tarefas</h1><p class="muted">O que precisa ser feito, na ordem certa.</p></div></div><div class="card"><p class="muted">Carregando...</p></div>`;
     const [lista, follow] = await Promise.all([Dados.listar("ges_tarefas"), Abordagens.pendentesHoje().catch(() => 0)]);
     if (lista === null) { el.innerHTML = erroLeitura("as tarefas"); return; }
     tarefas = lista;
+    try { visao = localStorage.getItem(CHAVE_VISAO) === "lista" ? "lista" : "semana"; } catch { visao = "semana"; }
+    semanaIni = segundaDe(new Date());
     el.onclick = (e) => cliqueTarefas(e, el, follow);
     desenharTarefas(el, follow);
   }
 
   function desenharTarefas(el, follow) {
+    const abas = `
+      <div class="abas abas-sub" role="tablist">
+        <button class="aba ${visao === "semana" ? "ativa" : ""}" data-visao="semana" role="tab">🗓️ Semana</button>
+        <button class="aba ${visao === "lista" ? "ativa" : ""}" data-visao="lista" role="tab">📋 Lista</button>
+      </div>`;
+    el.innerHTML = `
+      <div class="cabecalho"><div><h1>✅ Tarefas</h1><p class="muted">Sua semana por horário, coloridinha 🌷</p></div></div>
+      ${avisoLocal()}
+      ${follow ? `<a class="card faixa-aviso" href="#abordagens/controle">📨 Você tem <b>${follow} follow-up${follow > 1 ? "s" : ""}</b> pra mandar hoje nas marcas <span>Abrir →</span></a>` : ""}
+      ${abas}
+      ${visao === "semana" ? htmlSemana() : htmlLista()}`;
+
+    // no celular a semana rola pro lado: já mostra o dia de hoje
+    const rolagem = el.querySelector(".sem-rolagem");
+    const colHoje = el.querySelector(".sem-dia-cab.hoje");
+    if (rolagem && colHoje && rolagem.scrollWidth > rolagem.clientWidth) {
+      rolagem.scrollLeft = Math.max(0, colHoje.offsetLeft - 54 - 8);
+    }
+
+    el.querySelector("[data-nova]")?.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const f = ev.target;
+      const titulo = f.titulo.value.trim();
+      if (!titulo) return;
+      const r = await Dados.salvar("ges_tarefas", { titulo, prazo: f.prazo.value || null, prioridade: f.prioridade.value, feita: false, hora_inicio: "", hora_fim: "", cor: "" });
+      if (r.erro) return toast(r.erro, "erro");
+      tarefas.push(r.row);
+      toast("📝 Tarefa adicionada.", "ok");
+      desenharTarefas(el, follow);
+      el.querySelector('[data-nova] [name="titulo"]').focus();
+    });
+  }
+
+  // ---------- 🗓️ visão da semana ----------
+  // coloca lado a lado as tarefas que acontecem ao mesmo tempo
+  function posicionar(evs) {
+    evs.sort((a, b) => a.s - b.s || b.e - a.e);
+    let grupo = [], faixas = [], fimGrupo = -1;
+    const fechar = () => { grupo.forEach((g) => { g.n = faixas.length; }); grupo = []; faixas = []; };
+    for (const ev of evs) {
+      if (grupo.length && ev.s >= fimGrupo) fechar();
+      let i = faixas.findIndex((fim) => fim <= ev.s);
+      if (i < 0) { i = faixas.length; faixas.push(ev.e); } else faixas[i] = ev.e;
+      ev.faixa = i;
+      fimGrupo = grupo.length ? Math.max(fimGrupo, ev.e) : ev.e;
+      grupo.push(ev);
+    }
+    if (grupo.length) fechar();
+    return evs;
+  }
+
+  function htmlSemana() {
     const h = hoje();
-    const abertas = tarefas.filter((t) => !t.feita).sort((a, b) => (pesoPri[a.prioridade] - pesoPri[b.prioridade]) || String(a.prazo || "9").localeCompare(String(b.prazo || "9")));
+    const dias = DIAS.map((_, i) => iso(somaDias(semanaIni, i)));
+    const daSemana = tarefas.filter((t) => t.prazo && t.prazo >= dias[0] && t.prazo <= dias[6]);
+    const comHora = daSemana.filter((t) => minutos(t.hora_inicio) != null).map((t) => {
+      const s = minutos(t.hora_inicio);
+      let e = minutos(t.hora_fim);
+      if (e == null || e <= s) e = s + 60;
+      return { t, s, e: Math.min(e, 24 * 60) };
+    });
+    // horário visível: 7h às 22h, cresce se tiver tarefa fora disso
+    let hIni = 7, hFim = 22;
+    comHora.forEach((ev) => { hIni = Math.min(hIni, Math.floor(ev.s / 60)); hFim = Math.max(hFim, Math.ceil(ev.e / 60)); });
+    const altura = (hFim - hIni) * PX_HORA;
+    const semHora = (d) => daSemana.filter((t) => t.prazo === d && minutos(t.hora_inicio) == null);
+    const fimSemana = somaDias(semanaIni, 6);
+    const titulo = `${pad(semanaIni.getDate())}/${pad(semanaIni.getMonth() + 1)} a ${pad(fimSemana.getDate())}/${pad(fimSemana.getMonth() + 1)}`;
+    const ehEstaSemana = iso(semanaIni) === iso(segundaDe(new Date()));
+    const semData = tarefas.filter((t) => !t.feita && !t.prazo).length;
+
+    const bloco = (ev) => {
+      const c = corDe(ev.t);
+      const top = ((ev.s - hIni * 60) / 60) * PX_HORA;
+      const alt = Math.max(((ev.e - ev.s) / 60) * PX_HORA - 3, 24);
+      const larg = 100 / ev.n;
+      return `<button type="button" class="sem-bloco ${ev.t.feita ? "feita" : ""}" data-acao="editar" data-id="${esc(ev.t.id)}"
+        style="top:${top}px;height:${alt}px;left:calc(${ev.faixa * larg}% + 2px);width:calc(${larg}% - 4px);background:${c.f};color:${c.t}"
+        title="${esc(ev.t.titulo)} · ${esc(horario(ev.t))}">
+        <span class="sem-bloco-titulo">${ev.t.feita ? "✓ " : ""}${esc(ev.t.titulo)}</span>
+        ${alt >= 40 ? `<span class="sem-bloco-hora">${esc(horario(ev.t))}</span>` : ""}
+      </button>`;
+    };
+
+    return `
+      <div class="sem-topo">
+        <div class="sem-nav">
+          <button class="btn-icone" data-semana="-1" aria-label="Semana anterior">‹</button>
+          <strong class="sem-titulo">Semana de ${titulo}</strong>
+          <button class="btn-icone" data-semana="1" aria-label="Próxima semana">›</button>
+          ${ehEstaSemana ? "" : `<button class="btn btn-sm" data-semana="0">Hoje</button>`}
+        </div>
+        <button class="btn btn-primario" data-acao="nova" data-dia="${esc(dias.includes(h) ? h : dias[0])}">＋ Nova tarefa</button>
+      </div>
+      <p class="muted sem-dica">Toque num horário vazio pra criar uma tarefa ali. Toque numa tarefa pra editar, mudar a cor ou concluir.</p>
+      <div class="card sem-rolagem">
+        <div class="sem-grade" style="--px-hora:${PX_HORA}px">
+          <div class="sem-canto"></div>
+          ${dias.map((d, i) => `<div class="sem-dia-cab ${d === h ? "hoje" : ""}"><span>${DIAS[i]}</span><b>${Number(d.slice(8))}</b></div>`).join("")}
+          <div class="sem-rotulo-todo">Dia todo</div>
+          ${dias.map((d) => `<div class="sem-todo" data-dia="${d}">${semHora(d).map((t) => {
+            const c = corDe(t);
+            return `<button type="button" class="sem-chip ${t.feita ? "feita" : ""}" data-acao="editar" data-id="${esc(t.id)}" style="background:${c.f};color:${c.t}">${t.feita ? "✓ " : ""}${esc(t.titulo)}</button>`;
+          }).join("")}</div>`).join("")}
+          <div class="sem-horas" style="height:${altura}px">
+            ${Array.from({ length: hFim - hIni }, (_, i) => `<span style="top:${i * PX_HORA}px">${pad(hIni + i)}:00</span>`).join("")}
+          </div>
+          ${dias.map((d, i) => `<div class="sem-coluna ${d === h ? "hoje" : i % 2 ? "" : "par"}" data-dia="${d}" data-h-ini="${hIni}" style="height:${altura}px">
+            ${posicionar(comHora.filter((ev) => ev.t.prazo === d)).map(bloco).join("")}
+          </div>`).join("")}
+        </div>
+      </div>
+      ${semData ? `<p class="muted sem-dica">🗂️ ${semData} tarefa${semData > 1 ? "s" : ""} sem data: veja na aba <button class="link-btn" data-visao="lista">Lista</button>.</p>` : ""}`;
+  }
+
+  // ---------- 📋 visão em lista ----------
+  function htmlLista() {
+    const h = hoje();
+    const abertas = tarefas.filter((t) => !t.feita).sort((a, b) => (pesoPri[a.prioridade] - pesoPri[b.prioridade]) || String(a.prazo || "9").localeCompare(String(b.prazo || "9")) || String(a.hora_inicio || "99").localeCompare(String(b.hora_inicio || "99")));
     const grupos = [
       { t: "⏰ Atrasadas", l: abertas.filter((t) => t.prazo && t.prazo < h), cls: "tar-grupo-atraso" },
-      { t: "☀️ Hoje", l: abertas.filter((t) => t.prazo === h) },
-      { t: "📆 Próximas", l: abertas.filter((t) => t.prazo && t.prazo > h).sort((a, b) => a.prazo.localeCompare(b.prazo)) },
+      { t: "☀️ Hoje", l: abertas.filter((t) => t.prazo === h).sort((a, b) => String(a.hora_inicio || "99").localeCompare(String(b.hora_inicio || "99"))) },
+      { t: "📆 Próximas", l: abertas.filter((t) => t.prazo && t.prazo > h).sort((a, b) => a.prazo.localeCompare(b.prazo) || String(a.hora_inicio || "99").localeCompare(String(b.hora_inicio || "99"))) },
       { t: "🗂️ Sem data", l: abertas.filter((t) => !t.prazo) },
     ];
     const feitas = tarefas.filter((t) => t.feita).sort((a, b) => String(b.feita_em).localeCompare(String(a.feita_em)));
-
-    el.innerHTML = `
-      <div class="cabecalho"><div><h1>✅ Tarefas</h1><p class="muted">O que precisa ser feito, na ordem certa.</p></div></div>
-      ${avisoLocal()}
-      ${follow ? `<a class="card faixa-aviso" href="#abordagens/controle">📨 Você tem <b>${follow} follow-up${follow > 1 ? "s" : ""}</b> pra mandar hoje nas marcas <span>Abrir →</span></a>` : ""}
+    return `
       <form class="card tar-nova" data-nova>
         <input type="text" name="titulo" maxlength="140" placeholder="✍️ Nova tarefa... (ex: gravar o vídeo da Felps)" aria-label="Nova tarefa" required>
         <input type="date" name="prazo" aria-label="Prazo">
@@ -87,37 +234,115 @@ window.Gestao = (() => {
         <details class="tar-feitas"><summary>✔️ Concluídas (${feitas.length})</summary>
           <div class="card tar-lista">${feitas.slice(0, 30).map(linhaTarefa).join("")}</div>
         </details>` : ""}`;
-
-    el.querySelector("[data-nova]").addEventListener("submit", async (ev) => {
-      ev.preventDefault();
-      const f = ev.target;
-      const titulo = f.titulo.value.trim();
-      if (!titulo) return;
-      const r = await Dados.salvar("ges_tarefas", { titulo, prazo: f.prazo.value || null, prioridade: f.prioridade.value, feita: false });
-      if (r.erro) return toast(r.erro, "erro");
-      tarefas.push(r.row);
-      toast("📝 Tarefa adicionada.", "ok");
-      desenharTarefas(el, follow);
-      el.querySelector('[data-nova] [name="titulo"]').focus();
-    });
   }
 
   function linhaTarefa(t) {
     const p = PRIORIDADES[t.prioridade] || PRIORIDADES.media;
     const atrasada = !t.feita && t.prazo && t.prazo < hoje();
+    const hora = horario(t);
     return `
       <div class="tar-item ${t.feita ? "feita" : ""}">
         <button class="tar-check" data-acao="alternar" data-id="${esc(t.id)}" aria-label="${t.feita ? "Desmarcar" : "Concluir"}: ${esc(t.titulo)}">${t.feita ? "✓" : ""}</button>
+        <span class="tar-cor" style="background:${corDe(t).f}" aria-hidden="true"></span>
         <span class="tar-pri" title="Prioridade ${p.t}">${p.e}</span>
         <span class="tar-titulo">${esc(t.titulo)}${t.notas ? `<span class="tar-notas">${esc(t.notas)}</span>` : ""}</span>
-        ${t.prazo ? `<span class="tar-prazo ${atrasada ? "atrasada" : ""}">📅 ${esc(dataBr(t.prazo))}</span>` : ""}
+        ${t.prazo ? `<span class="tar-prazo ${atrasada ? "atrasada" : ""}">📅 ${esc(dataBr(t.prazo))}${hora ? ` · ${esc(hora)}` : ""}</span>` : ""}
         <button class="btn-icone" data-acao="editar" data-id="${esc(t.id)}" aria-label="Editar ${esc(t.titulo)}">✏️</button>
       </div>`;
   }
 
+  // ---------- janela de criar / editar ----------
+  function janelaTarefa(t, el, follow) {
+    const novo = !t.id;
+    const corAtual = corDe(t).v;
+    abrirJanela(`
+      <form class="modal">
+        ${cab(novo ? "📝 Nova tarefa" : "✏️ Editar tarefa")}
+        <label class="campo"><span class="rotulo">Tarefa</span><input type="text" name="titulo" maxlength="140" required value="${esc(t.titulo || "")}" placeholder="Ex: gravar vídeos do camping"></label>
+        <div class="linha-3">
+          <label class="campo"><span class="rotulo">Dia</span><input type="date" name="prazo" value="${esc(t.prazo || "")}"></label>
+          <label class="campo"><span class="rotulo">Das</span><input type="time" name="hora_inicio" step="900" value="${esc(t.hora_inicio || "")}"></label>
+          <label class="campo"><span class="rotulo">Até</span><input type="time" name="hora_fim" step="900" value="${esc(t.hora_fim || "")}"></label>
+        </div>
+        <p class="muted abord-dica">Sem horário, a tarefa aparece em "Dia todo".</p>
+        <div class="campo"><span class="rotulo">Cor</span>
+          <div class="tar-cores" role="radiogroup" aria-label="Cor">
+            ${CORES.map((c) => `<label class="tar-cor-op" title="${c.n}"><input type="radio" name="cor" value="${c.v}" ${c.v === corAtual ? "checked" : ""}><span style="background:${c.f}"></span><b class="sr">${c.n}</b></label>`).join("")}
+          </div>
+        </div>
+        <div class="linha-2">
+          <label class="campo"><span class="rotulo">Prioridade</span><select name="prioridade">${Object.entries(PRIORIDADES).map(([v, p]) => `<option value="${v}" ${(t.prioridade || "media") === v ? "selected" : ""}>${p.e} ${p.t}</option>`).join("")}</select></label>
+          ${novo ? "" : `<label class="campo tar-feita-op"><input type="checkbox" name="feita" ${t.feita ? "checked" : ""}> Concluída ✓</label>`}
+        </div>
+        <label class="campo"><span class="rotulo">Notas (opcional)</span><textarea name="notas">${esc(t.notas || "")}</textarea></label>
+        ${rodape(!novo)}
+      </form>`, (fundo, fechar) => {
+      const f = fundo.querySelector("form");
+      if (novo) f.titulo.focus();
+      // ao escolher o início, sugere 1 hora de duração
+      f.hora_inicio.addEventListener("change", () => {
+        const s = minutos(f.hora_inicio.value), e = minutos(f.hora_fim.value);
+        if (s != null && (e == null || e <= s)) f.hora_fim.value = hhmm(Math.min(s + 60, 23 * 60 + 45));
+      });
+      fundo.querySelector("[data-apagar]")?.addEventListener("click", async () => {
+        if (!confirm(`Apagar "${t.titulo}"?`)) return;
+        const r = await Dados.apagar("ges_tarefas", t.id);
+        if (r.erro) return toast(r.erro, "erro");
+        tarefas = tarefas.filter((x) => x.id !== t.id);
+        fechar(); desenharTarefas(el, follow);
+      });
+      f.addEventListener("submit", async (ev) => {
+        ev.preventDefault();
+        const titulo = f.titulo.value.trim();
+        if (!titulo) return;
+        let ini = f.hora_inicio.value || "", fim = f.hora_fim.value || "";
+        if (!ini) fim = "";
+        if (ini && fim && minutos(fim) <= minutos(ini)) return toast("O horário de fim precisa ser depois do início.", "erro");
+        const feita = novo ? false : f.feita.checked;
+        const acabouDeConcluir = feita && !t.feita;
+        const r = await Dados.salvar("ges_tarefas", {
+          ...t, titulo, prazo: f.prazo.value || null, hora_inicio: ini, hora_fim: fim,
+          cor: f.cor.value || "", prioridade: f.prioridade.value, notas: f.notas.value.trim(),
+          feita, feita_em: feita ? (t.feita_em || new Date().toISOString()) : null,
+        });
+        if (r.erro) return toast(r.erro, "erro");
+        if (novo) tarefas.push(r.row); else Object.assign(t, r.row);
+        toast(novo ? "📝 Tarefa criada." : (acabouDeConcluir ? "🎉 Tarefa concluída!" : "Tarefa salva."), "ok");
+        fechar(); desenharTarefas(el, follow);
+      });
+    });
+  }
+
   async function cliqueTarefas(e, el, follow) {
+    // trocar entre semana e lista
+    const v = e.target.closest("[data-visao]");
+    if (v) {
+      visao = v.dataset.visao;
+      try { localStorage.setItem(CHAVE_VISAO, visao); } catch { /* nada */ }
+      return desenharTarefas(el, follow);
+    }
+    // navegar entre semanas
+    const s = e.target.closest("[data-semana]");
+    if (s) {
+      const n = Number(s.dataset.semana);
+      semanaIni = n === 0 ? segundaDe(new Date()) : somaDias(semanaIni, 7 * n);
+      return desenharTarefas(el, follow);
+    }
     const b = e.target.closest("[data-acao]");
-    if (!b) return;
+    if (b?.dataset.acao === "nova") return janelaTarefa({ prazo: b.dataset.dia || hoje(), prioridade: "media" }, el, follow);
+    // clique num horário vazio da agenda
+    if (!b) {
+      const col = e.target.closest(".sem-coluna");
+      if (col && e.target === col) {
+        const hIni = Number(col.dataset.hIni) || 0;
+        const y = e.clientY - col.getBoundingClientRect().top;
+        const ini = Math.max(0, Math.min(23 * 60, hIni * 60 + Math.floor(y / (PX_HORA / 2)) * 30));
+        return janelaTarefa({ prazo: col.dataset.dia, hora_inicio: hhmm(ini), hora_fim: hhmm(Math.min(ini + 60, 23 * 60 + 45)), prioridade: "media" }, el, follow);
+      }
+      const todo = e.target.closest(".sem-todo");
+      if (todo && e.target === todo) return janelaTarefa({ prazo: todo.dataset.dia, prioridade: "media" }, el, follow);
+      return;
+    }
     const t = tarefas.find((x) => x.id === b.dataset.id);
     if (!t) return;
     if (b.dataset.acao === "alternar") {
@@ -128,37 +353,7 @@ window.Gestao = (() => {
       if (feita) toast("🎉 Tarefa concluída!", "ok");
       return desenharTarefas(el, follow);
     }
-    if (b.dataset.acao === "editar") {
-      abrirJanela(`
-        <form class="modal">
-          ${cab("✏️ Editar tarefa")}
-          <label class="campo"><span class="rotulo">Tarefa</span><input type="text" name="titulo" maxlength="140" required value="${esc(t.titulo)}"></label>
-          <div class="linha-2">
-            <label class="campo"><span class="rotulo">Prazo</span><input type="date" name="prazo" value="${esc(t.prazo || "")}"></label>
-            <label class="campo"><span class="rotulo">Prioridade</span><select name="prioridade">${Object.entries(PRIORIDADES).map(([v, p]) => `<option value="${v}" ${t.prioridade === v ? "selected" : ""}>${p.e} ${p.t}</option>`).join("")}</select></label>
-          </div>
-          <label class="campo"><span class="rotulo">Notas (opcional)</span><textarea name="notas">${esc(t.notas || "")}</textarea></label>
-          ${rodape(true)}
-        </form>`, (fundo, fechar) => {
-        const f = fundo.querySelector("form");
-        f.titulo.focus();
-        fundo.querySelector("[data-apagar]").addEventListener("click", async () => {
-          if (!confirm(`Apagar "${t.titulo}"?`)) return;
-          const r = await Dados.apagar("ges_tarefas", t.id);
-          if (r.erro) return toast(r.erro, "erro");
-          tarefas = tarefas.filter((x) => x.id !== t.id);
-          fechar(); desenharTarefas(el, follow);
-        });
-        f.addEventListener("submit", async (ev) => {
-          ev.preventDefault();
-          const r = await Dados.salvar("ges_tarefas", { ...t, titulo: f.titulo.value.trim(), prazo: f.prazo.value || null, prioridade: f.prioridade.value, notas: f.notas.value.trim() });
-          if (r.erro) return toast(r.erro, "erro");
-          Object.assign(t, r.row);
-          toast("Tarefa salva.", "ok");
-          fechar(); desenharTarefas(el, follow);
-        });
-      });
-    }
+    if (b.dataset.acao === "editar") return janelaTarefa(t, el, follow);
   }
 
   // =================================================================
