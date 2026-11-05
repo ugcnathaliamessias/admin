@@ -827,12 +827,73 @@ window.Abordagens = (() => {
     else toast("Texto copiado. É só colar na mensagem.", "ok");
   }
 
+  // ---------- salvar no controle o que acabou de ser copiado ----------
+  // "Holy Foods", "holyfoods" e "@holyfoods" viram a mesma marca
+  const chaveMarca = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/^@/, "").replace(/[^a-z0-9]/g, "");
+  const ehEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s || "").trim());
+
+  async function registrarUso(m, valores) {
+    const nome = String(valores.marca || "").trim();
+    if (!nome) { toast("Copiado. Pra salvar no controle, preencha o nome da marca.", "aviso"); return; }
+    const k = chaveMarca(nome);
+    const c = contatos.find((x) => chaveMarca(x.marca) === k || (x.instagram && chaveMarca(x.instagram) === k));
+    const contato = String(valores.contato || "").trim();
+    const produto = String(valores.produto || "").trim();
+    const especial = camposDe(m.texto).includes("data especial") ? String(valores["data especial"] || "").trim() : "";
+    const h = hoje();
+
+    // o que a mensagem muda no acompanhamento
+    let mud;
+    if (m.tipo === "followup") {
+      if (m.situacao === "retomar") {
+        mud = { status: c?.contato || contato ? "time" : "enviado", followups: 0, retomar_em: null };
+      } else {
+        const st = m.situacao?.startsWith("time") ? "time" : m.situacao === "proposta" ? "proposta" : "enviado";
+        const ativo = c && statusDe(c.status).ativo && c.status !== "a_enviar";
+        mud = { status: ativo ? c.status : st, followups: ativo ? (c.followups || 0) + 1 : 1 };
+      }
+    } else if (m.tipo === "conversa") {
+      // falando com alguém do time (tem {contato}) ou conversando pela DM
+      mud = { status: /\{\s*contato\s*\}/.test(m.texto) ? "time" : "conversando", followups: 0 };
+    } else {
+      // primeiro contato ou plataforma (de novo = recomeça a contagem)
+      mud = { status: "enviado", followups: 0, retomar_em: null };
+    }
+
+    const nota = `${dataBr(h)}: ${m.titulo}${especial ? ` (${especial})` : ""}`;
+    const base = c || {
+      marca: nome, instagram: "", produto: "", contato: "", notas: "", primeiro_envio: h,
+      tipo: m.tipo === "plataforma" ? "plataforma" : "instagram",
+    };
+    const novo = {
+      ...base, ...mud, ultimo_envio: h,
+      produto: produto || base.produto || "",
+      contato: contato || base.contato || "",
+      notas: base.notas ? `${base.notas}\n${nota}` : nota,
+    };
+    if (c?.status === "a_enviar") novo.primeiro_envio = h;
+    // contato do time por e-mail: o canal passa a ser e-mail
+    if (contato && ehEmail(contato) && /\{\s*contato\s*\}/.test(m.texto)) novo.tipo = "email";
+
+    const r = await Dados.salvarAbord("abord_contatos", limparContato(novo));
+    if (r.erro) return toast(r.erro, "erro");
+    if (c) Object.assign(c, r.row); else contatos.push(r.row);
+    toast(c ? `Copiado e atualizado no controle: ${c.marca} ✓` : `Copiado e ${nome} entrou no controle ✓`, "ok");
+    desenhar();
+  }
+
   function janelaUsar(m) {
     const limite = () => (m.tipo === "plataforma" ? LIMITE_PLATAFORMA : LIMITE_DM);
-    const podeRegistrar = ehPrimeiro(m.tipo) || m.tipo === "plataforma";
+    const podeRegistrar = true;
+    // texto sem {marca}: pede a marca só pra saber onde salvar no controle
+    const pedeMarca = !camposDe(m.texto).includes("marca");
     abrirJanela(`
       <div class="modal modal-largo">
         ${cabJanela(m.titulo)}
+        ${pedeMarca ? `
+          <label class="campo"><span class="rotulo">Marca (pra salvar no controle)</span>
+            <input type="text" data-marca-registro list="abord-marcas-lista" placeholder="Nome da marca" autocomplete="off"></label>
+          <datalist id="abord-marcas-lista">${contatos.map((c) => `<option value="${esc(c.marca)}">`).join("")}</datalist>` : ""}
         <div class="abord-campos" data-campos></div>
         <div class="abord-previa-cab"><span class="rotulo">Como vai ficar</span><span class="abord-contador" data-contador></span></div>
         <div class="abord-previa" data-previa></div>
@@ -848,12 +909,9 @@ window.Abordagens = (() => {
       fundo.querySelector("[data-registrar]")?.addEventListener("click", async () => {
         p.lembrar();
         await copiar(p.final(), p.faltando());
+        const marcaExtra = fundo.querySelector("[data-marca-registro]")?.value.trim();
         fechar();
-        formMarca({
-          marca: p.valores.marca || "", produto: p.valores.produto || "",
-          tipo: m.tipo === "plataforma" ? "plataforma" : "instagram", status: "enviado",
-          primeiro_envio: hoje(), ultimo_envio: hoje(),
-        });
+        await registrarUso(m, marcaExtra ? { ...p.valores, marca: marcaExtra } : p.valores);
       });
     });
   }
