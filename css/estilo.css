@@ -175,6 +175,32 @@ input:focus, textarea:focus, select:focus {
   font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
   color: var(--texto-3); padding: 16px 10px 6px;
 }
+/* =====================================================================
+   TEMA VAI TER ESTRADA (quando esse perfil está escolhido)
+   Mesmas cores do mídia kit: verde oliva do logo, terra, ferrugem,
+   sol e areia.
+   ===================================================================== */
+:root[data-tema="vte"] {
+  --destaque: #4D5B2F;        /* verde oliva do logo */
+  --destaque-escuro: #3A4523;
+  --destaque-claro: #E1E6CF;
+  --rosa: #C65A1E;            /* ferrugem */
+  --fundo: #F5EFE3;           /* areia */
+  --superficie: #FFFCF6;
+  --superficie-2: #EFE6D4;
+  --texto: #2B1A10;
+  --texto-2: #6E5646;
+  --texto-3: #9A8573;
+  --borda: #E6DACA;
+  --borda-forte: #D4C2A8;
+  --azul: #27318A;            /* azul dos títulos do mídia kit */
+  --azul-claro: #DDE1F4;
+}
+:root[data-tema="vte"] .menu .menu-item.ativo { background: #FBE8C6; color: #5B2A14; }
+:root[data-tema="vte"] .menu .menu-grupo { color: rgba(251, 232, 198, .8); }
+:root[data-tema="vte"] .abord-perfil.ativo { background: #C65A1E; }
+:root[data-tema="vte"] h1, :root[data-tema="vte"] h2 { color: #5B2A14; }
+
 /* menu lateral em bordô */
 .menu { background: var(--destaque); border-right: 0; color: #FFFBEF; }
 .menu .marca { color: #FFFBEF; }
@@ -595,6 +621,7 @@ textarea.link-grande { min-height: 70px; font-family: ui-monospace, SFMono-Regul
 .abord-fila { padding: 0; }
 .abord-fila-item { display: grid; grid-template-columns: minmax(130px, 1fr) minmax(150px, 1.2fr) auto; gap: 10px; align-items: center; padding: 10px 14px; border-top: 1px solid var(--borda); }
 .abord-fila-item:first-child { border-top: 0; }
+.abord-fila-item:has(.abord-fila-produto) { grid-template-columns: minmax(130px, 1fr) minmax(130px, 1fr) minmax(130px, 1fr) auto; }
 .abord-fila-arroba { color: var(--destaque); font-weight: 600; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .abord-fila-arroba:hover { text-decoration: underline; }
 .abord-fila-marca { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-width: 0; }
@@ -819,7 +846,7 @@ textarea.link-grande { min-height: 70px; font-family: ui-monospace, SFMono-Regul
   .abord-campos { grid-template-columns: 1fr; }
   .abord-modelos { grid-template-columns: 1fr; }
   .abord-perfis { width: 100%; }
-  .abord-fila-item { grid-template-columns: 1fr; gap: 6px; }
+  .abord-fila-item, .abord-fila-item:has(.abord-fila-produto) { grid-template-columns: 1fr; gap: 6px; }
   .abord-fila-acoes { justify-content: flex-start; }
   .abord-lista-add-acoes { flex-direction: column; align-items: stretch; }
   .abord-lista-modelo { min-width: 0; width: 100%; }
