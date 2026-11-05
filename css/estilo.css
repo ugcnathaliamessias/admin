@@ -848,6 +848,10 @@ a.aba, a.vte-aba { text-decoration: none; display: inline-block; }
 .vte-kpis { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
 .vte-grade > * { min-width: 0; }
 .vte-cab-acoes { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.vte-coment-linha { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-top: 1px solid var(--borda); }
+.vte-coment-campos { flex: 1; min-width: 0; }
+.vte-coment-campos .campo { margin-bottom: 8px; }
+.vte-coment-print { width: 44px; height: 88px; object-fit: cover; object-position: top; border-radius: 8px; border: 1px solid var(--borda); }
 .vte-pub-linha { display: grid; grid-template-columns: minmax(60px, 120px) 1fr 52px; gap: 10px; align-items: center; font-size: 13px; padding: 4px 0; }
 .vte-pub-linha span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .vte-pub-linha b { text-align: right; }
