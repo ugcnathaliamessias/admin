@@ -122,9 +122,55 @@ window.Abordagens = (() => {
   const chaveVars = () => `painel_abord_vars_${perfil}`;
   function preencher(texto, valores) {
     return String(texto || "").replace(RE_CAMPO, (m, k) => {
-      const v = valores[k.trim()];
+      const v = valores[k.trim()] || numerosAuto[k.trim()];
       return v ? v : m;
     });
+  }
+  // campos que o painel preenche sozinho (não aparecem pra digitar)
+  const ehAuto = (k) => Object.prototype.hasOwnProperty.call(numerosAuto, k);
+
+  // ---------- números do Vai Ter Estrada (vindos do robô, últimos 30 dias) ----------
+  let numerosAuto = {};
+  const CAMPOS_AUTO = ["alcance", "visualizações", "compartilhamentos", "salvamentos", "seguidores", "público"];
+  function formatarMil(n) {
+    n = Number(n) || 0;
+    if (n < 1000) return String(n);
+    return `${(Math.floor(n / 100) / 10).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mil`;
+  }
+  // "58% mulheres, 63% entre 35 e 54 anos" (junta as duas faixas maiores quando são vizinhas)
+  function resumoPublico(p) {
+    if (!p) return "";
+    const partes = [];
+    const fem = Number(p.mulheres), mas = Number(p.homens);
+    if (fem || mas) partes.push(fem >= mas ? `${Math.round(fem)}% mulheres` : `${Math.round(mas)}% homens`);
+    const faixas = (p.idades || []).map((f, i) => ({ ...f, i, de: parseInt(f.faixa, 10), ate: parseInt(String(f.faixa).split("-")[1], 10) }))
+      .filter((f) => !Number.isNaN(f.de) && !Number.isNaN(f.ate));
+    const top = [...faixas].sort((a, b) => b.pct - a.pct).slice(0, 2);
+    if (top.length === 2 && Math.abs(top[0].i - top[1].i) === 1) {
+      const [a, b] = top[0].i < top[1].i ? top : [top[1], top[0]];
+      partes.push(`${Math.round(a.pct + b.pct)}% entre ${a.de} e ${b.ate} anos`);
+    } else if (top.length) {
+      partes.push(`${Math.round(top[0].pct)}% entre ${top[0].de} e ${top[0].ate} anos`);
+    }
+    return partes.join(", ");
+  }
+  async function carregarNumerosVte() {
+    numerosAuto = {};
+    if (perfil !== "vaiterestrada" || !Dados.lerVte) return;
+    try {
+      const d = await Dados.lerVte();
+      const ig = d?.instagram || {};
+      const ins = ig.insights || {};
+      const n = {
+        alcance: ins.alcance_30d && formatarMil(ins.alcance_30d),
+        "visualizações": ins.views_30d && formatarMil(ins.views_30d),
+        compartilhamentos: ins.compartilhamentos_30d && formatarMil(ins.compartilhamentos_30d),
+        salvamentos: ins.salvamentos_30d && formatarMil(ins.salvamentos_30d),
+        seguidores: ig.perfil?.seguidores && formatarMil(ig.perfil.seguidores),
+        "público": resumoPublico(ins.publico),
+      };
+      for (const k of CAMPOS_AUTO) if (n[k]) numerosAuto[k] = n[k];
+    } catch { /* sem números: os campos ficam pra preencher à mão */ }
   }
 
   // =================================================================
@@ -145,6 +191,7 @@ window.Abordagens = (() => {
     [modelos, contatos] = await Promise.all([
       Dados.listarAbord("abord_modelos", perfil),
       Dados.listarAbord("abord_contatos", perfil),
+      carregarNumerosVte(),
     ]);
     desenhar();
   }
@@ -207,7 +254,7 @@ window.Abordagens = (() => {
     // marca e produto são de cada marca (ficam na linha); o resto vale pra lista toda
     const camposModelo = modelo ? camposDe(modelo.texto) : [];
     const pedeProduto = camposModelo.includes("produto");
-    const extras = camposModelo.filter((k) => k !== "marca" && k !== "produto");
+    const extras = camposModelo.filter((k) => k !== "marca" && k !== "produto" && !ehAuto(k));
 
     return `
       <div class="card abord-lista-add">
@@ -679,6 +726,7 @@ window.Abordagens = (() => {
         <label class="campo"><span class="rotulo">Texto <span class="abord-contador" data-contador></span></span>
           <textarea name="texto" rows="10" required placeholder="Oi, {marca}! ...">${esc(m.texto || "")}</textarea></label>
         <p class="muted abord-dica">Escreva entre chaves o que muda a cada marca: {marca}, {produto}, {gancho}... Na hora de usar, o painel pede pra você preencher.</p>
+        ${perfil === "vaiterestrada" ? `<p class="muted abord-dica">Números que entram sozinhos (atualizados pelo robô, últimos 30 dias): {alcance}, {visualizações}, {compartilhamentos}, {salvamentos}, {seguidores} e {público}.</p>` : ""}
         <div class="modal-acoes">
           ${novo ? "" : `<button type="button" class="btn btn-perigo" data-apagar>${icone("lixo", 15)} Apagar</button>`}
           <span style="flex:1"></span>
@@ -729,7 +777,7 @@ window.Abordagens = (() => {
     const lembrados = lerLocal(chaveVars(), {});
     const valores = { ...lembrados, ...iniciais };
     const desenharCampos = () => {
-      const campos = camposDe(getTexto());
+      const campos = camposDe(getTexto()).filter((k) => !ehAuto(k));
       caixa.querySelector("[data-campos]").innerHTML = campos.length ? campos.map((k) => CAMPOS_CURTOS.includes(k) ? `
         <label class="campo"><span class="rotulo">${esc(k)}</span>
           <input type="text" data-campo="${esc(k)}" value="${esc(valores[k] || "")}" placeholder="${esc(k)}"></label>` : `
