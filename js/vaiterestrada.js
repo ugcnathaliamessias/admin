@@ -367,6 +367,10 @@ window.VaiTerEstrada = (() => {
                 <label class="campo" style="flex:1"><span class="rotulo">Capa</span><input type="text" data-k="capa" value="${esc(p.capa)}"></label>
                 <label class="btn btn-sm vte-enviar">📤 Enviar capa<input type="file" accept="image/*" data-enviar-capa="${i}" hidden></label>
               </div>
+              <div class="vte-capa-linha">
+                <label class="campo" style="flex:1"><span class="rotulo">Logo da marca (passa na faixa)</span><input type="text" data-k="logo" value="${esc(p.logo || "")}"></label>
+                <label class="btn btn-sm vte-enviar">📤 Enviar logo<input type="file" accept="image/*" data-enviar-logo="${i}" hidden></label>
+              </div>
             </div>
             <div class="port-acoes">
               <button class="btn-icone" data-acao="parc-mover" data-i="${i}" data-d="-1" ${i === 0 ? "disabled" : ""} aria-label="Subir" title="Subir">↑</button>
@@ -446,7 +450,7 @@ window.VaiTerEstrada = (() => {
     if (el.querySelector("[data-parc]") || (c.parcerias || []).length === 0) {
       c.parcerias = [...el.querySelectorAll("[data-parc]")].map((row) => {
         const g = (k) => row.querySelector(`[data-k="${k}"]`)?.value.trim() || "";
-        return { marca: g("marca"), formato: g("formato"), video: g("video"), capa: g("capa") };
+        return { marca: g("marca"), formato: g("formato"), video: g("video"), capa: g("capa"), logo: g("logo") };
       });
     }
     c.comentarios = [...el.querySelectorAll("[data-coment-tipo]")].map((x) => {
@@ -540,7 +544,8 @@ window.VaiTerEstrada = (() => {
   async function aoMudar(e) {
     const capa = e.target.closest("[data-enviar-capa]");
     const coment = e.target.closest("[data-enviar-coment]");
-    if (!capa && !coment) return;
+    const logo = e.target.closest("[data-enviar-logo]");
+    if (!capa && !coment && !logo) return;
     const arquivo = e.target.files?.[0];
     if (!arquivo) return;
     toast("Enviando imagem...");
@@ -548,6 +553,7 @@ window.VaiTerEstrada = (() => {
     if (r.erro) return toast(r.erro, "erro");
     conteudo = coletar();
     if (capa) conteudo.parcerias[Number(capa.dataset.enviarCapa)].capa = r.url;
+    else if (logo) conteudo.parcerias[Number(logo.dataset.enviarLogo)].logo = r.url;
     else conteudo.comentarios = [...(conteudo.comentarios || []), r.url];
     desenhar();
     toast("Imagem pronta. Toque em Salvar pra ir pro site.", "ok");
