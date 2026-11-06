@@ -27,7 +27,8 @@ window.VaiTerEstrada = (() => {
   let ordemTabela = { campo: "data", desc: true };
 
   const urlSite = (s) => (!s ? "" : /^(https?:|data:)/.test(s) ? s : SITE + s);
-  const compacto = (n) => new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 }).format(n || 0);
+  // arredonda pra baixo, igual aos textos de abordagem ("mais de {alcance}") e ao mídia kit
+  const compacto = (n) => new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1, roundingMode: "trunc" }).format(n || 0);
   const pct = (n) => `${Number(n || 0).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
   // "2026-09-07" (só a data) não pode passar por new Date, senão volta um dia pelo fuso
   const dataBr = (s) => {
@@ -65,10 +66,13 @@ window.VaiTerEstrada = (() => {
     const videos30 = recentes.filter((p) => typeof p.views === "number");
     const views30 = videos30.reduce((t, p) => t + p.views, 0);
     const comViews = lista.filter((p) => typeof p.views === "number");
+    // views oficiais do Instagram (todo o conteúdo em 30 dias): o mesmo número do mídia kit e das abordagens
+    const oficial = Number(ig?.insights?.views_30d) || 0;
     return {
       perfil, lista,
       seguidores: seg,
-      views30,
+      views30: oficial || views30,
+      viewsOficial: !!oficial,
       posts30: recentes.length,
       inter30: recentes.reduce((t, p) => t + p.interacoes, 0),
       mediaViews: videos30.length ? Math.round(views30 / videos30.length) : 0,
@@ -154,7 +158,7 @@ window.VaiTerEstrada = (() => {
       </div>
       <div class="grade vte-kpis">
         ${kpi("👥 Seguidores", num(a.seguidores), cresc !== null && cresc > 0 ? `+${cresc}% desde ${dataBr(primeiro.dia)}` : "no Instagram", "vte-kpi-destaque")}
-        ${kpi("▶️ Views em 30 dias", compacto(a.views30), `${a.posts30} posts no período`)}
+        ${kpi("▶️ Views em 30 dias", compacto(a.views30), a.viewsOficial ? `todo o conteúdo · ${a.posts30} posts novos` : `${a.posts30} posts no período`)}
         ${kpi("📈 Média por reel", compacto(a.mediaViews), "views por vídeo (30 dias)")}
         ${kpi("💬 Engajamento", pct(a.engajamento), "curtidas + comentários ÷ seguidores")}
         ${kpi("❤️ Interações em 30 dias", compacto(a.inter30), "curtidas + comentários")}
