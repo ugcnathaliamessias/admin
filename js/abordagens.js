@@ -1006,5 +1006,24 @@ window.Abordagens = (() => {
     return { acoes, filas, hoje: hoje() };
   }
 
-  return { render, pendentesHoje, acoesPendentes };
+  // Registra no Controle uma ação feita pelo Quadro (cartão 🤖 concluído):
+  // followup → conta +1 e a última mensagem vira hoje (o próximo é contado daqui)
+  // retomar → recomeça a contagem · pausar → pausa 30 dias · encerrar → encerrada
+  async function registrarAcao(perfilDaMarca, id, acao) {
+    const lista = await Dados.listarAbord("abord_contatos", perfilDaMarca);
+    const c = (lista || []).find((x) => x.id === id);
+    if (!c) return { erro: "Não achei essa marca em Marcas & prospecção." };
+    const h = hoje();
+    let mud, nota;
+    if (acao === "followup") { mud = { followups: (c.followups || 0) + 1, ultimo_envio: h }; nota = `${(c.followups || 0) + 1}º follow-up enviado`; }
+    else if (acao === "retomar") { mud = { status: c.contato ? "time" : "enviado", followups: 0, ultimo_envio: h, retomar_em: null }; nota = "contato retomado"; }
+    else if (acao === "pausar") { mud = { status: "pausada", retomar_em: somaDias(h, RETOMAR_PADRAO) }; nota = `pausada até ${dataBr(somaDias(h, RETOMAR_PADRAO))}`; }
+    else if (acao === "encerrar") { mud = { status: "sem_retorno", retomar_em: null }; nota = "encerrada (sem resposta)"; }
+    else return { erro: "Ação desconhecida." };
+    const linhaNota = `${dataBr(h)}: ${nota} (pelo Quadro)`;
+    const row = { ...limparContato({ ...c, ...mud, notas: c.notas ? `${c.notas}\n${linhaNota}` : linhaNota }), perfil: perfilDaMarca };
+    return Dados.salvarAbord("abord_contatos", row);
+  }
+
+  return { render, pendentesHoje, acoesPendentes, registrarAcao };
 })();

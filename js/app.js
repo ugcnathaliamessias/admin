@@ -81,7 +81,7 @@ window.App = (() => {
       <h2 class="secao-titulo" style="margin-top:0">📌 Seu dia</h2>
       <div class="inicio-dia">
         <a class="card inicio-card" href="#abordagens/controle"><span class="inicio-emoji">📨</span><span class="rotulo">Follow-ups pra hoje</span><div class="kpi-valor" id="ini-follow">…</div></a>
-        <a class="card inicio-card" href="#tarefas"><span class="inicio-emoji">✅</span><span class="rotulo">Tarefas pra hoje</span><div class="kpi-valor" id="ini-tarefas">…</div></a>
+        <a class="card inicio-card" href="#quadro"><span class="inicio-emoji">📌</span><span class="rotulo">Pra hoje no Quadro</span><div class="kpi-valor" id="ini-tarefas">…</div></a>
         <a class="card inicio-card" href="#financeiro"><span class="inicio-emoji">💸</span><span class="rotulo">Recebido no mês</span><div class="kpi-valor" id="ini-recebido">…</div><div class="kpi-sub" id="ini-areceber"></div></a>
         <a class="card inicio-card" href="#quadro"><span class="inicio-emoji">🗂️</span><span class="rotulo">Cartões no quadro</span><div class="kpi-valor" id="ini-ideias">…</div></a>
       </div>
@@ -101,9 +101,9 @@ window.App = (() => {
       </div>`;
     const escreve = (sel, txt) => { const x = $(sel); if (x) x.textContent = txt; };
     Abordagens.pendentesHoje().then((n) => escreve("#ini-follow", num(n))).catch(() => escreve("#ini-follow", "-"));
+    Quadro.contarHoje().then((n) => escreve("#ini-tarefas", num(n))).catch(() => escreve("#ini-tarefas", "-"));
     Quadro.contarAbertos().then((n) => escreve("#ini-ideias", num(n))).catch(() => escreve("#ini-ideias", "-"));
     Gestao.resumo().then((g) => {
-      escreve("#ini-tarefas", num(g.tarefasHoje));
       escreve("#ini-recebido", Gestao.reais(g.recebidoMes));
       escreve("#ini-areceber", g.aReceber ? `⏳ ${Gestao.reais(g.aReceber)} a receber` : "");
       const caixa = $("#ini-metas");
@@ -161,7 +161,7 @@ window.App = (() => {
   // =================================================================
   function rotear() {
     let [rota, sub] = (location.hash.replace(/^#/, "") || "inicio").split("/");
-    if (rota === "ideias") rota = "quadro"; // o Banco de ideias virou o Quadro
+    if (rota === "ideias" || rota === "tarefas") rota = "quadro"; // Banco de ideias e Tarefas viraram o Quadro
     document.querySelectorAll(".menu-item[data-rota]").forEach((a) =>
       a.classList.toggle("ativo", a.dataset.rota === rota)
     );

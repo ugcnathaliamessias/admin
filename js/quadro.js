@@ -141,7 +141,61 @@ window.Quadro = (() => {
   // =================================================================
   // MOVER (setinhas e arrastar)
   // =================================================================
+  // 🤖 cartão de follow-up indo pra Concluído: pergunta se é pra registrar
+  // em Marcas & prospecção (assim o próximo follow-up é contado a partir de hoje)
   async function moverPara(c, coluna, ordem) {
+    if (coluna === "feito" && c.coluna !== "feito" && c.origem === "followup") {
+      const escolha = await perguntarFollowup(c);
+      if (escolha === "cancelar") return desenhar(false);
+      if (escolha === "controle") {
+        if (c.perfil) { try { localStorage.setItem("painel_abord_perfil", JSON.stringify(c.perfil)); } catch { /* nada */ } }
+        location.hash = "#abordagens/controle";
+        return;
+      }
+      if (escolha !== "mover") {
+        const [id] = String(c.origem_id).split(":");
+        const r = await Abordagens.registrarAcao(c.perfil, id, escolha);
+        if (r.erro) { toast(r.erro, "erro"); return desenhar(false); }
+        toast(escolha === "followup" ? "📨 Follow-up registrado! O próximo vai aparecer sozinho no dia certo."
+          : escolha === "retomar" ? "🔁 Contato retomado! A contagem recomeçou."
+          : escolha === "pausar" ? "⏸️ Marca pausada por 30 dias." : "Marca encerrada.", "ok");
+      }
+    }
+    return moverDireto(c, coluna, ordem);
+  }
+
+  function perguntarFollowup(c) {
+    const tipo = String(c.origem_id).split(":")[1] || "followup";
+    const marca = c.titulo.replace(/^.*?:\s*/, "").replace(/ não respondeu.*$/, "").replace(/^⏸️\s*/, "");
+    const opcoes = tipo === "pausar"
+      ? [["pausar", "⏸️ Pausar 30 dias", true], ["encerrar", "Encerrar", false], ["mover", "Só mover o cartão", false]]
+      : tipo === "retomar"
+        ? [["retomar", "Sim, registrar a retomada", true], ["controle", "A marca respondeu: abrir o Controle", false], ["mover", "Só mover o cartão", false]]
+        : [["followup", "Sim, registrar e contar o próximo", true], ["controle", "A marca respondeu: abrir o Controle", false], ["mover", "Só mover o cartão", false]];
+    const pergunta = tipo === "pausar" ? `${marca} não respondeu os 2 follow-ups. O que fazer?`
+      : tipo === "retomar" ? `Você retomou o contato com ${marca}?`
+      : `Você mandou o follow-up pra ${marca}?`;
+    return new Promise((resolver) => {
+      let escolhido = "cancelar";
+      abrirJanela(`
+        <div class="modal">
+          ${cab("📨 Concluir cartão")}
+          <p style="margin-top:-4px">${esc(pergunta)}</p>
+          ${tipo === "followup" ? `<p class="muted abord-dica">Registrando, a contagem do próximo follow-up começa hoje.</p>` : ""}
+          <div class="qd-escolhas">
+            ${opcoes.map(([v, t, prim]) => `<button type="button" class="btn ${prim ? "btn-primario" : ""}" data-escolha="${v}">${esc(t)}</button>`).join("")}
+            <button type="button" class="btn" data-fechar>Cancelar</button>
+          </div>
+        </div>`, (fundo, fechar) => {
+        fundo.querySelectorAll("[data-escolha]").forEach((b) => b.addEventListener("click", () => { escolhido = b.dataset.escolha; fechar(); }));
+        // quando a janela some (por botão, Esc ou clique fora), devolve a escolha
+        const obs = new MutationObserver(() => { if (!document.body.contains(fundo)) { obs.disconnect(); resolver(escolhido); } });
+        obs.observe(document.body, { childList: true });
+      });
+    });
+  }
+
+  async function moverDireto(c, coluna, ordem) {
     const antes = { coluna: c.coluna, ordem: c.ordem, feito_em: c.feito_em };
     c.coluna = coluna;
     c.ordem = ordem ?? menorOrdem(coluna);
@@ -272,6 +326,11 @@ window.Quadro = (() => {
         ev.preventDefault();
         const coluna = f.coluna.value;
         const mudouColuna = coluna !== c.coluna;
+        // follow-up concluído pela janela: mesma pergunta do arrastar
+        if (auto && c.origem === "followup" && mudouColuna && coluna === "feito") {
+          fechar();
+          return moverPara(c, "feito");
+        }
         const r = await Dados.salvar("quadro_cartoes", {
           ...c, titulo: f.titulo.value.trim(), notas: f.notas.value.trim(), categoria: f.categoria.value,
           perfil: f.perfil.value, prazo: f.prazo.value || null, coluna,
@@ -376,5 +435,12 @@ window.Quadro = (() => {
     return (l || []).filter((c) => c.coluna !== "feito").length;
   }
 
-  return { render, contarAbertos };
+  // Cartões pra hoje (prazo até hoje e ainda não concluídos) — tela de Início
+  async function contarHoje() {
+    const l = await Dados.listar("quadro_cartoes");
+    const h = hoje();
+    return (l || []).filter((c) => c.coluna !== "feito" && c.prazo && c.prazo <= h).length;
+  }
+
+  return { render, contarAbertos, contarHoje };
 })();
