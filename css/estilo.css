@@ -714,6 +714,43 @@ textarea.link-grande { min-height: 70px; font-family: ui-monospace, SFMono-Regul
 .tar-feita-op { flex-direction: row !important; align-items: center; gap: 8px; align-self: end; padding-bottom: 10px; font-weight: 600; }
 .link-btn { background: none; border: 0; padding: 0; color: var(--destaque); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
 
+/* 🗂️ quadro (estilo Trello) */
+.qd-novo { display: grid; grid-template-columns: 1fr 150px 150px auto; gap: 10px; padding: 14px; margin-bottom: 12px; }
+.qd-filtros { margin-bottom: 14px; }
+.qd-quadro { display: grid; grid-template-columns: repeat(5, minmax(220px, 1fr)); gap: 12px; align-items: start; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; }
+.qd-coluna { background: color-mix(in srgb, var(--cor-col) 22%, var(--superficie)); border: 1px solid color-mix(in srgb, var(--cor-col) 55%, transparent); border-top: 5px solid var(--cor-col); border-radius: 16px; padding: 10px; min-height: 160px; scroll-snap-align: start; transition: box-shadow .12s, background .12s; }
+.qd-coluna.sobre { box-shadow: 0 0 0 3px var(--cor-col); background: color-mix(in srgb, var(--cor-col) 38%, var(--superficie)); }
+.qd-col-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px 4px 10px; }
+.qd-col-cab h2 { font-size: 15px; margin: 0; }
+.qd-conta { font-size: 12px; font-weight: 700; background: var(--superficie); border-radius: 999px; padding: 2px 9px; color: var(--texto-2); }
+.qd-lista { display: flex; flex-direction: column; gap: 8px; min-height: 60px; }
+.qd-vazio { font-size: 12.5px; color: var(--texto-3); text-align: center; margin: 14px 0; }
+.qd-cartao { background: var(--superficie); border-radius: 12px; padding: 10px 10px 8px; box-shadow: 0 1px 3px rgba(60, 10, 20, .1); border-left: 4px solid var(--cor-cat); cursor: grab; transition: transform .12s, box-shadow .12s; }
+.qd-cartao:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(60, 10, 20, .14); }
+.qd-cartao.arrastando { opacity: .45; }
+.qd-cartao.feito .qd-titulo { text-decoration: line-through; color: var(--texto-3); }
+.qd-cartao-topo { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+.qd-tag { font-size: 11px; font-weight: 700; border-radius: 999px; padding: 2px 8px; }
+.qd-perfil { font-size: 11px; color: var(--texto-2); font-weight: 600; }
+.qd-auto { margin-left: auto; font-size: 13px; }
+.qd-titulo { font-size: 13.5px; font-weight: 600; margin: 0; line-height: 1.35; word-break: break-word; }
+.qd-notas { font-size: 12px; color: var(--texto-2); margin: 4px 0 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.qd-rodape { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; min-height: 26px; }
+.qd-prazo { font-size: 11.5px; color: var(--texto-2); }
+.qd-prazo.atrasado { color: #B91C1C; font-weight: 700; }
+.qd-setas { display: flex; gap: 2px; opacity: 0; transition: opacity .12s; }
+.qd-setas .btn-icone { width: 26px; height: 26px; font-size: 18px; line-height: 1; }
+.qd-cartao:hover .qd-setas, .qd-cartao:focus-within .qd-setas { opacity: 1; }
+@media (hover: none) { .qd-setas { opacity: 1; } }
+.qd-mais { font-size: 12.5px; align-self: center; margin-top: 4px; }
+.qd-janela-extra { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 8px; }
+.qd-janela-extra:empty { display: none; }
+@media (max-width: 860px) {
+  .qd-novo { grid-template-columns: 1fr 1fr; }
+  .qd-novo input[name="titulo"], .qd-novo .btn { grid-column: 1 / -1; }
+  .qd-quadro { grid-template-columns: repeat(5, 82vw); }
+}
+
 /* 🗓️ agenda da semana */
 .sem-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 4px 0 6px; }
 .sem-nav { display: flex; align-items: center; gap: 6px; }
