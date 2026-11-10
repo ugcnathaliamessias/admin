@@ -95,12 +95,14 @@ window.Analise = (() => {
       <h2 class="secao-titulo">📌 Sua estratégia</h2>
       <div class="card an-estrategia">
         ${e.posicionamento ? `<p class="an-posicionamento">“${esc(e.posicionamento)}”</p>` : ""}
-        <div class="an-est-grade">
+        <div class="an-est-grade an-est-3">
           ${linha("Nome do perfil", e.nome ? `<b>${esc(e.nome)}</b>` : "")}
-          ${linha("Bio", e.bio ? `<pre class="an-bio">${esc(e.bio)}</pre>` : "")}
           ${linha("Nicho", esc(e.nicho || ""))}
-          ${linha("Onde o nicho aparece", e.onde_nicho?.length ? `<ul>${e.onde_nicho.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : "")}
           ${linha("Pra quem", e.publicos?.length ? `<ul>${e.publicos.map((x) => `<li><b>${esc(x.nome)}:</b> ${esc(x.texto)}</li>`).join("")}</ul>` : "")}
+        </div>
+        <div class="an-est-grade an-est-2">
+          ${linha("Bio", e.bio ? `<pre class="an-bio">${esc(e.bio)}</pre>` : "")}
+          ${linha("Onde o nicho aparece", e.onde_nicho?.length ? `<ul>${e.onde_nicho.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : "")}
         </div>
         ${e.pilares?.length ? `
           <h3 class="an-est-sub">Pilares de conteúdo</h3>
@@ -110,8 +112,17 @@ window.Analise = (() => {
               ${p.pct ? `<div class="an-pilar-barra"><i style="width:${parseInt(p.pct, 10) || 0}%"></i></div>` : ""}
               <p>${esc(p.texto || "")}</p>
             </div>`).join("")}</div>` : ""}
-        ${e.ritmo ? `<p class="an-ritmo">🗓️ ${esc(e.ritmo)}</p>` : ""}
-        ${e.medir ? `<p class="muted" style="margin:6px 0 0">📊 ${esc(e.medir)}</p>` : ""}
+        ${e.semana?.length ? `
+          <h3 class="an-est-sub">🗓️ Sua semana de conteúdo</h3>
+          <div class="an-semana">${e.semana.map((s) => `
+            <div class="an-dia an-dia-${esc(s.etapa || "extra")}">
+              <span class="an-dia-nome">${esc(s.dia)}</span>
+              <b>${esc(s.oque)}</b>
+              ${s.etapa && ETAPAS[s.etapa] ? `<span class="chip an-etapa-${esc(s.etapa)}">${ETAPAS[s.etapa]}</span>` : ""}
+              ${s.pilares ? `<span class="an-dia-pilar">${esc(s.pilares)}</span>` : ""}
+              ${s.exemplos?.length ? `<ul>${s.exemplos.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
+            </div>`).join("")}</div>` : e.ritmo ? `<p class="an-ritmo">🗓️ ${esc(e.ritmo)}</p>` : ""}
+        ${e.medir ? `<p class="an-medir">📊 ${esc(e.medir)}</p>` : ""}
       </div>`;
   }
 
