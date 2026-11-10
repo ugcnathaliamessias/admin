@@ -714,6 +714,37 @@ textarea.link-grande { min-height: 70px; font-family: ui-monospace, SFMono-Regul
 .tar-feita-op { flex-direction: row !important; align-items: center; gap: 8px; align-self: end; padding-bottom: 10px; font-weight: 600; }
 .link-btn { background: none; border: 0; padding: 0; color: var(--destaque); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
 
+/* 🧭 análise do perfil */
+a.aba { text-decoration: none; display: inline-flex; align-items: center; }
+.an-resumo { padding: 20px 22px; background: linear-gradient(135deg, color-mix(in srgb, var(--rosa) 30%, var(--superficie)), var(--superficie)); }
+.an-resumo h2 { margin: 4px 0 8px; font-size: 20px; }
+.an-resumo > p { font-size: 15px; line-height: 1.6; margin: 0; max-width: 860px; }
+.an-data { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--destaque); }
+.an-numeros { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 16px; }
+.an-numeros div { background: var(--superficie); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--borda); }
+.an-numeros b { font-family: "Inter Tight", sans-serif; font-size: 22px; color: var(--destaque); }
+.an-numeros span { font-size: 12.5px; font-weight: 600; }
+.an-numeros em { font-size: 12px; color: var(--texto-3); font-style: normal; }
+.an-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.an-item { padding: 14px 16px; border-left: 5px solid var(--borda-forte); }
+.an-item h3 { margin: 0 0 6px; font-size: 15px; }
+.an-item p { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--texto-2); }
+.an-bom { border-left-color: #22896A; }
+.an-atencao { border-left-color: #F6A85A; }
+.an-mercado ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.55; }
+.an-ritmo { margin: 14px 0 0; padding-top: 12px; border-top: 1px dashed var(--borda-forte); font-weight: 600; }
+.an-ideias { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.an-ideia { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.an-ideia h3 { margin: 0; font-size: 15px; }
+.an-ideia p { margin: 0; font-size: 13.5px; line-height: 1.5; }
+.an-ideia .btn { align-self: flex-start; margin-top: auto; }
+.an-ideia-topo { display: flex; gap: 6px; flex-wrap: wrap; }
+.an-ideia-topo:empty { display: none; }
+.an-gancho { font-style: italic; color: var(--destaque); font-weight: 600; }
+.an-etapa-topo { background: #DCEAF2; }
+.an-etapa-meio { background: #FCE6EB; }
+.an-etapa-fundo { background: #FBE8C6; }
+
 /* 🗂️ quadro (estilo Trello) */
 .qd-novo { display: grid; grid-template-columns: 1fr 150px 150px auto; gap: 10px; padding: 14px; margin-bottom: 12px; }
 .qd-filtros { margin-bottom: 14px; }
