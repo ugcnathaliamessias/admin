@@ -23,6 +23,33 @@ window.Analise = (() => {
     if (outras.length) g.push({ etapa: "", itens: outras });
     return g.filter((x) => x.itens.length);
   }
+  // 📌 estratégia do perfil (posicionamento, nome, bio, pilares, ritmo)
+  function blocoEstrategia(e) {
+    if (!e) return "";
+    const linha = (rot, val) => (val ? `<div class="an-est-linha"><span class="rotulo">${esc(rot)}</span><div>${val}</div></div>` : "");
+    return `
+      <h2 class="secao-titulo">📌 Sua estratégia</h2>
+      <div class="card an-estrategia">
+        ${e.posicionamento ? `<p class="an-posicionamento">“${esc(e.posicionamento)}”</p>` : ""}
+        <div class="an-est-grade">
+          ${linha("Nome do perfil", e.nome ? `<b>${esc(e.nome)}</b>` : "")}
+          ${linha("Bio", e.bio ? `<pre class="an-bio">${esc(e.bio)}</pre>` : "")}
+          ${linha("Nicho", esc(e.nicho || ""))}
+          ${linha("Onde o nicho aparece", e.onde_nicho?.length ? `<ul>${e.onde_nicho.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : "")}
+          ${linha("Pra quem", e.publicos?.length ? `<ul>${e.publicos.map((x) => `<li><b>${esc(x.nome)}:</b> ${esc(x.texto)}</li>`).join("")}</ul>` : "")}
+        </div>
+        ${e.pilares?.length ? `
+          <h3 class="an-est-sub">Pilares de conteúdo</h3>
+          <div class="an-pilares">${e.pilares.map((p) => `
+            <div class="an-pilar-card">
+              <div class="an-pilar-cab"><b>${esc(p.nome)}</b>${p.pct ? `<span>${esc(p.pct)}</span>` : ""}</div>
+              ${p.pct ? `<div class="an-pilar-barra"><i style="width:${parseInt(p.pct, 10) || 0}%"></i></div>` : ""}
+              <p>${esc(p.texto || "")}</p>
+            </div>`).join("")}</div>` : ""}
+        ${e.ritmo ? `<p class="an-ritmo">🗓️ ${esc(e.ritmo)}</p>` : ""}
+        ${e.medir ? `<p class="muted" style="margin:6px 0 0">📊 ${esc(e.medir)}</p>` : ""}
+      </div>`;
+  }
   const dataBr = (s) => { const m = String(s || "").match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : ""; };
 
   async function render(alvo, perfil) {
@@ -50,6 +77,7 @@ window.Analise = (() => {
         <p>${esc(a.resumo)}</p>
         ${a.numeros?.length ? `<div class="an-numeros">${a.numeros.map((n) => `<div><b>${esc(n.valor)}</b><span>${esc(n.rotulo)}</span>${n.nota ? `<em>${esc(n.nota)}</em>` : ""}</div>`).join("")}</div>` : ""}
       </div>
+      ${blocoEstrategia(a.estrategia)}
       ${bloco("✅ O que está funcionando", a.funciona, "an-bom")}
       ${bloco("⚠️ Pontos de atenção", a.atencao, "an-atencao")}
       ${a.mercado?.length ? `
@@ -63,7 +91,7 @@ window.Analise = (() => {
         <div class="an-ideias">${g.itens.map(({ x, i }) => `
           <article class="card an-ideia">
             <div class="an-ideia-topo">
-              ${x.etapa && ETAPAS[x.etapa] ? `<span class="chip an-etapa an-etapa-${esc(x.etapa)}">${ETAPAS[x.etapa]}</span>` : ""}
+              ${x.pilar ? `<span class="chip an-pilar">${esc(x.pilar)}</span>` : ""}
               ${x.formato ? `<span class="chip">${esc(x.formato)}</span>` : ""}
             </div>
             <h3>${esc(x.titulo)}</h3>
@@ -80,7 +108,7 @@ window.Analise = (() => {
       const x = ideias[Number(b.dataset.proQuadro)];
       if (!x) return;
       b.disabled = true;
-      const notas = [x.formato && `Formato: ${x.formato}`, x.gancho && `Gancho: "${x.gancho}"`, x.porque].filter(Boolean).join("\n");
+      const notas = [x.pilar && `Pilar: ${x.pilar}`, ETAPAS[x.etapa] && `Etapa: ${ETAPAS[x.etapa]}`, x.formato && `Formato: ${x.formato}`, x.gancho && `Gancho: "${x.gancho}"`, x.porque].filter(Boolean).join("\n");
       const r = await Dados.salvar("quadro_cartoes", {
         titulo: x.titulo, notas, coluna: "comecar", categoria: "conteudo", perfil, prazo: null,
         ordem: -Date.now() / 1000, origem: "manual", origem_id: "", feito_em: null,
