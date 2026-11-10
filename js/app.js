@@ -129,7 +129,7 @@ window.App = (() => {
   // INSTAGRAM (sub-abas Métricas e Automações)
   // =================================================================
   function telaInstagram(el, sub) {
-    if (perfilAtual() === "vaiterestrada") return VaiTerEstrada.abrirInstagram(el);
+    if (perfilAtual() === "vaiterestrada") return VaiTerEstrada.abrirInstagram(el, sub);
     const aba = ["metricas", "leads"].includes(sub) ? sub : "automacoes";
     el.innerHTML = `
       <div class="cabecalho">
