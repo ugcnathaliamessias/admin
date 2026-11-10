@@ -719,7 +719,33 @@ a.aba { text-decoration: none; display: inline-flex; align-items: center; }
 .an-resumo { padding: 20px 22px; background: linear-gradient(135deg, color-mix(in srgb, var(--rosa) 30%, var(--superficie)), var(--superficie)); }
 .an-resumo h2 { margin: 4px 0 8px; font-size: 20px; }
 .an-resumo > p { font-size: 15px; line-height: 1.6; margin: 0; max-width: 860px; }
-.an-data { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--destaque); }
+.an-data-txt { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--destaque); }
+.an-sub-data { font-size: 13px; font-weight: 500; }
+/* 📅 datas sazonais */
+.an-datas { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.an-data { padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; border-top: 4px solid var(--borda-forte); }
+.an-data.abordar { border-top-color: #F6A85A; }
+.an-data.agora { border-top-color: var(--destaque); }
+.an-data-topo { display: flex; justify-content: space-between; align-items: center; }
+.an-data-emoji { font-size: 22px; }
+.an-data-dia { font-family: "Inter Tight", sans-serif; font-weight: 800; color: var(--destaque); }
+.an-data b { font-size: 14.5px; }
+.an-data-falta { font-size: 12.5px; color: var(--texto-2); }
+.an-data-tag { align-self: flex-start; font-size: 11.5px; font-weight: 700; background: #FBE8C6; color: #6A3A00; border-radius: 999px; padding: 2px 8px; }
+.an-data-tag.agora { background: var(--destaque-claro, #FCE6EB); color: var(--destaque); }
+.an-data p { margin: 4px 0 0; font-size: 12.5px; color: var(--texto-2); line-height: 1.45; }
+/* ✨ inspirações */
+.an-inspira { text-decoration: none; color: inherit; border-left-color: var(--rosa); }
+.an-inspira:hover { box-shadow: 0 6px 14px rgba(60, 10, 20, .12); }
+.an-inspira h3 .muted { font-weight: 500; font-size: 13px; }
+/* 💡 ações das ideias e roteiro */
+.an-ideias-cab { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.an-ideia-acoes { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: auto; padding-top: 6px; }
+.an-com-roteiro { background: #DCEFE5; }
+.an-rot-linha { border: 1px solid var(--borda); border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; background: var(--superficie); }
+.an-rot-cab { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+.an-rot-cab input { font-weight: 700; flex: 1; }
+.an-roteiro-modal { max-height: 88vh; overflow-y: auto; }
 .an-numeros { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 16px; }
 .an-numeros div { background: var(--superficie); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--borda); }
 .an-numeros b { font-family: "Inter Tight", sans-serif; font-size: 22px; color: var(--destaque); }
@@ -737,7 +763,6 @@ a.aba { text-decoration: none; display: inline-flex; align-items: center; }
 .an-ideia { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
 .an-ideia h3 { margin: 0; font-size: 15px; }
 .an-ideia p { margin: 0; font-size: 13.5px; line-height: 1.5; }
-.an-ideia .btn { align-self: flex-start; margin-top: auto; }
 .an-ideia-topo { display: flex; gap: 6px; flex-wrap: wrap; }
 .an-ideia-topo:empty { display: none; }
 .an-gancho { font-style: italic; color: var(--destaque); font-weight: 600; }
