@@ -833,6 +833,8 @@ a.aba { text-decoration: none; display: inline-flex; align-items: center; }
 .qd-cartao:hover .qd-setas, .qd-cartao:focus-within .qd-setas { opacity: 1; }
 @media (hover: none) { .qd-setas { opacity: 1; } }
 .qd-mais { font-size: 12.5px; align-self: center; margin-top: 4px; }
+.qd-escolhas { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.qd-escolhas .btn { justify-content: center; }
 .qd-janela-extra { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 8px; }
 .qd-janela-extra:empty { display: none; }
 @media (max-width: 860px) {
