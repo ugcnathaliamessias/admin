@@ -83,13 +83,13 @@ window.App = (() => {
         <a class="card inicio-card" href="#abordagens/controle"><span class="inicio-emoji">📨</span><span class="rotulo">Follow-ups pra hoje</span><div class="kpi-valor" id="ini-follow">…</div></a>
         <a class="card inicio-card" href="#tarefas"><span class="inicio-emoji">✅</span><span class="rotulo">Tarefas pra hoje</span><div class="kpi-valor" id="ini-tarefas">…</div></a>
         <a class="card inicio-card" href="#financeiro"><span class="inicio-emoji">💸</span><span class="rotulo">Recebido no mês</span><div class="kpi-valor" id="ini-recebido">…</div><div class="kpi-sub" id="ini-areceber"></div></a>
-        <a class="card inicio-card" href="#ideias"><span class="inicio-emoji">💡</span><span class="rotulo">Ideias guardadas</span><div class="kpi-valor" id="ini-ideias">…</div></a>
+        <a class="card inicio-card" href="#quadro"><span class="inicio-emoji">🗂️</span><span class="rotulo">Cartões no quadro</span><div class="kpi-valor" id="ini-ideias">…</div></a>
       </div>
       <div id="ini-metas"></div>
       <h2 class="secao-titulo">⚡ Atalhos</h2>
       <div class="atalhos">
         <a class="card atalho" href="#abordagens/lista"><span class="atalho-emoji">🚀</span><span><strong>Lista do dia</strong><br><span class="muted">Mandar abordagens pras marcas</span></span></a>
-        <a class="card atalho" href="#ideias"><span class="atalho-emoji">💡</span><span><strong>Guardar uma ideia</strong><br><span class="muted">Antes que ela fuja</span></span></a>
+        <a class="card atalho" href="#quadro"><span class="atalho-emoji">🗂️</span><span><strong>Quadro</strong><br><span class="muted">O que começar e o que já andou</span></span></a>
         <a class="card atalho" href="#calendario"><span class="atalho-emoji">📅</span><span><strong>Calendário</strong><br><span class="muted">Planejar os conteúdos</span></span></a>
         <a class="card atalho" href="#portfolio"><span class="atalho-emoji">🖼️</span><span><strong>Portfólio</strong><br><span class="muted">Subir vídeo novo</span></span></a>
       </div>
@@ -101,7 +101,7 @@ window.App = (() => {
       </div>`;
     const escreve = (sel, txt) => { const x = $(sel); if (x) x.textContent = txt; };
     Abordagens.pendentesHoje().then((n) => escreve("#ini-follow", num(n))).catch(() => escreve("#ini-follow", "-"));
-    Ideias.contar().then((n) => escreve("#ini-ideias", num(n))).catch(() => escreve("#ini-ideias", "-"));
+    Quadro.contarAbertos().then((n) => escreve("#ini-ideias", num(n))).catch(() => escreve("#ini-ideias", "-"));
     Gestao.resumo().then((g) => {
       escreve("#ini-tarefas", num(g.tarefasHoje));
       escreve("#ini-recebido", Gestao.reais(g.recebidoMes));
@@ -158,7 +158,8 @@ window.App = (() => {
   // ROTAS
   // =================================================================
   function rotear() {
-    const [rota, sub] = (location.hash.replace(/^#/, "") || "inicio").split("/");
+    let [rota, sub] = (location.hash.replace(/^#/, "") || "inicio").split("/");
+    if (rota === "ideias") rota = "quadro"; // o Banco de ideias virou o Quadro
     document.querySelectorAll(".menu-item[data-rota]").forEach((a) =>
       a.classList.toggle("ativo", a.dataset.rota === rota)
     );
@@ -176,7 +177,7 @@ window.App = (() => {
       if (perfilAtual() === "vaiterestrada") VaiTerEstrada.abrirMidiaKit(el);
       else Portfolio.render(el, sub);
     }
-    else if (rota === "ideias") Ideias.render(el);
+    else if (rota === "quadro") Quadro.render(el);
     else if (rota === "tarefas") Gestao.telaTarefas(el);
     else if (rota === "metas") Gestao.telaMetas(el);
     else if (rota === "financeiro") Gestao.telaFinanceiro(el);

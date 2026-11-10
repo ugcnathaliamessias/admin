@@ -989,5 +989,22 @@ window.Abordagens = (() => {
     return lista.filter((c) => c.status !== "a_enviar" && vencido(c)).length;
   }
 
-  return { render, pendentesHoje };
+  // Tudo que precisa de ação nos dois perfis (usado pelo Quadro):
+  // follow-ups, pausar, retomar (com a data) e o tamanho da lista do dia
+  async function acoesPendentes() {
+    const porPerfil = await Promise.all(PERFIS.map(async (p) => ({ p, lista: await Dados.listarAbord("abord_contatos", p.v) })));
+    const acoes = [], filas = [];
+    for (const { p, lista } of porPerfil) {
+      filas.push({ perfil: p.v, nome: p.t, fila: lista.filter((c) => c.status === "a_enviar").length });
+      for (const c of lista) {
+        if (c.status === "a_enviar") continue;
+        const px = proximo(c);
+        if (!px) continue;
+        acoes.push({ perfil: p.v, nomePerfil: p.t, id: c.id, marca: c.marca, tipo: px.tipo, data: px.data, n: (c.followups || 0) + 1, status: c.status });
+      }
+    }
+    return { acoes, filas, hoje: hoje() };
+  }
+
+  return { render, pendentesHoje, acoesPendentes };
 })();
