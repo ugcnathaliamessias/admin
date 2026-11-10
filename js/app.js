@@ -130,7 +130,7 @@ window.App = (() => {
   // =================================================================
   function telaInstagram(el, sub) {
     if (perfilAtual() === "vaiterestrada") return VaiTerEstrada.abrirInstagram(el, sub);
-    const aba = ["metricas", "leads"].includes(sub) ? sub : "automacoes";
+    const aba = ["metricas", "leads", "analise"].includes(sub) ? sub : "automacoes";
     el.innerHTML = `
       <div class="cabecalho">
         <div>
@@ -143,6 +143,7 @@ window.App = (() => {
         <button class="aba ${aba === "metricas" ? "ativa" : ""}" data-aba="metricas" role="tab">📊 Métricas</button>
         <button class="aba ${aba === "automacoes" ? "ativa" : ""}" data-aba="automacoes" role="tab">🤖 Automações</button>
         <button class="aba ${aba === "leads" ? "ativa" : ""}" data-aba="leads" role="tab">👥 Leads</button>
+        <button class="aba ${aba === "analise" ? "ativa" : ""}" data-aba="analise" role="tab">🧭 Análise e ideias</button>
       </div>
       <div id="aba-conteudo"></div>`;
     el.querySelectorAll(".aba").forEach((b) =>
@@ -151,6 +152,7 @@ window.App = (() => {
     const alvo = $("#aba-conteudo");
     if (aba === "metricas") Metricas.render(alvo);
     else if (aba === "leads") Leads.render(alvo);
+    else if (aba === "analise") Analise.render(alvo, "nathalia");
     else Automacoes.renderLista(alvo);
   }
 

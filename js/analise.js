@@ -9,6 +9,20 @@ window.Analise = (() => {
   const NOMES = { nathalia: "Nathalia", vaiterestrada: "Vai Ter Estrada" };
   const ETAPAS = { topo: "🔝 Topo de funil", meio: "🎯 Meio de funil", fundo: "💰 Fundo de funil" };
 
+  const EXPLICA = {
+    topo: "atrai gente nova",
+    meio: "mostra que você sabe o que faz",
+    fundo: "chama pra ação: contratar, seguir, comentar",
+  };
+  // ideias com etapa ficam agrupadas (topo, meio, fundo); sem etapa, numa lista só
+  function grupos(ideias) {
+    const comIndice = ideias.map((x, i) => ({ x, i }));
+    if (!ideias.some((x) => ETAPAS[x.etapa])) return [{ etapa: "", itens: comIndice }];
+    const g = Object.keys(ETAPAS).map((etapa) => ({ etapa, itens: comIndice.filter(({ x }) => x.etapa === etapa) }));
+    const outras = comIndice.filter(({ x }) => !ETAPAS[x.etapa]);
+    if (outras.length) g.push({ etapa: "", itens: outras });
+    return g.filter((x) => x.itens.length);
+  }
   const dataBr = (s) => { const m = String(s || "").match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : ""; };
 
   async function render(alvo, perfil) {
@@ -44,7 +58,9 @@ window.Analise = (() => {
         ${a.ritmo ? `<p class="an-ritmo">🗓️ ${esc(a.ritmo)}</p>` : ""}</div>` : ""}
       ${ideias.length ? `
         <h2 class="secao-titulo">💡 Ideias de conteúdo</h2>
-        <div class="an-ideias">${ideias.map((x, i) => `
+        ${grupos(ideias).map((g) => `
+        ${g.etapa ? `<h3 class="an-etapa-titulo an-etapa-${g.etapa}">${ETAPAS[g.etapa]} <span class="muted">${esc(EXPLICA[g.etapa])}</span></h3>` : ""}
+        <div class="an-ideias">${g.itens.map(({ x, i }) => `
           <article class="card an-ideia">
             <div class="an-ideia-topo">
               ${x.etapa && ETAPAS[x.etapa] ? `<span class="chip an-etapa an-etapa-${esc(x.etapa)}">${ETAPAS[x.etapa]}</span>` : ""}
@@ -55,7 +71,7 @@ window.Analise = (() => {
             ${x.porque ? `<p class="muted">${esc(x.porque)}</p>` : ""}
             <button class="btn btn-sm" data-pro-quadro="${i}">🗂️ Mandar pro Quadro</button>
           </article>`).join("")}
-        </div>` : ""}
+        </div>`).join("")}` : ""}
       <p class="muted abord-dica">Quer uma análise nova (com os números mais recentes) ou mais ideias? É só pedir pro Claude.</p>`;
 
     alvo.onclick = async (e) => {
