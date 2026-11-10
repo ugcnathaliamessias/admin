@@ -741,6 +741,8 @@ a.aba { text-decoration: none; display: inline-flex; align-items: center; }
 .an-ideia-topo { display: flex; gap: 6px; flex-wrap: wrap; }
 .an-ideia-topo:empty { display: none; }
 .an-gancho { font-style: italic; color: var(--destaque); font-weight: 600; }
+.an-etapa-titulo { font-size: 16px; margin: 18px 0 10px; padding: 8px 12px; border-radius: 10px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.an-etapa-titulo .muted { font-size: 13px; font-weight: 500; }
 .an-etapa-topo { background: #DCEAF2; }
 .an-etapa-meio { background: #FCE6EB; }
 .an-etapa-fundo { background: #FBE8C6; }
