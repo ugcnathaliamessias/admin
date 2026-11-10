@@ -768,7 +768,24 @@ a.aba { text-decoration: none; display: inline-flex; align-items: center; }
 .an-gancho { font-style: italic; color: var(--destaque); font-weight: 600; }
 .an-estrategia { padding: 18px 20px; border-top: 5px solid var(--destaque); }
 .an-posicionamento { font-family: "Inter Tight", sans-serif; font-size: 18px; font-weight: 700; color: var(--destaque); margin: 0 0 14px; line-height: 1.4; }
-.an-est-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px 20px; }
+.an-est-grade { display: grid; gap: 14px 24px; align-items: start; }
+.an-est-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.an-est-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--borda-forte); }
+@media (max-width: 760px) { .an-est-3, .an-est-2 { grid-template-columns: 1fr; } }
+/* 🗓️ semana de conteúdo */
+.an-semana { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 1100px) { .an-semana { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); } }
+.an-dia { border: 1px solid var(--borda); border-top: 5px solid var(--borda-forte); border-radius: 12px; padding: 10px 12px; background: var(--superficie); display: flex; flex-direction: column; gap: 5px; }
+.an-dia-topo { border-top-color: #A6C9DD; }
+.an-dia-meio { border-top-color: #F9B9C4; }
+.an-dia-fundo { border-top-color: #F6A85A; }
+.an-dia-extra { border-top-color: #7C9885; }
+.an-dia-nome { font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--destaque); }
+.an-dia b { font-size: 14px; line-height: 1.3; }
+.an-dia .chip { align-self: flex-start; font-size: 11px; }
+.an-dia-pilar { font-size: 12px; color: var(--texto-2); font-weight: 600; }
+.an-dia ul { margin: 2px 0 0; padding-left: 16px; font-size: 12.5px; color: var(--texto-2); line-height: 1.45; }
+.an-medir { margin: 14px 0 0; padding-top: 12px; border-top: 1px dashed var(--borda-forte); color: var(--texto-2); font-size: 13.5px; }
 .an-est-linha .rotulo { display: block; margin-bottom: 4px; }
 .an-est-linha ul { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.55; }
 .an-bio { margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 14px; background: var(--superficie-2); border-radius: 10px; padding: 10px 12px; line-height: 1.5; }
