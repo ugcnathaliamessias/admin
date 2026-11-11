@@ -236,7 +236,19 @@ window.Abordagens = (() => {
   }
 
   // ---------- LISTA DO DIA ----------
-  const modelosPrimeiro = () => modelos.filter((m) => ehPrimeiro(m.tipo));
+  // modelos em inglês (título com "(English)") ficam fora do menu e aparecem no botão EN da linha
+  const ehIngles = (m) => /\(english\)/i.test(m.titulo || "");
+  const modelosPrimeiro = () => modelos.filter((m) => ehPrimeiro(m.tipo) && !ehIngles(m));
+  const modeloIngles = () => (perfil === "vaiterestrada" ? modelos.find((m) => ehPrimeiro(m.tipo) && ehIngles(m)) || null : null);
+  // "24,3 mil" → "24.3K" pros números automáticos no texto em inglês
+  function numerosEmIngles() {
+    const out = {};
+    for (const [k, v] of Object.entries(numerosAuto)) {
+      const m = String(v).match(/^([\d.,]+) mil$/);
+      out[k] = m ? `${m[1].replace(",", ".")}K` : v;
+    }
+    return out;
+  }
   function modeloDaLista() {
     const lista = modelosPrimeiro();
     const salvo = lerLocal(CHAVE_MODELO_LISTA, {})[perfil];
@@ -250,10 +262,11 @@ window.Abordagens = (() => {
     const enviadasHoje = contatos.filter((c) => c.status !== "a_enviar" && c.primeiro_envio === hoje()).length;
     const meta = Number(lerLocal(CHAVE_META, 50)) || 50;
     const modelo = modeloDaLista();
+    const ingles = modeloIngles();
     const valores = lerLocal(chaveVars(), {});
     // marca e produto são de cada marca (ficam na linha); o resto vale pra lista toda
     const camposModelo = modelo ? camposDe(modelo.texto) : [];
-    const pedeProduto = camposModelo.includes("produto");
+    const pedeProduto = camposModelo.includes("produto") || (ingles ? camposDe(ingles.texto).includes("produto") : false);
     const extras = camposModelo.filter((k) => k !== "marca" && k !== "produto" && !ehAuto(k));
 
     return `
@@ -295,7 +308,8 @@ window.Abordagens = (() => {
               <input type="text" class="abord-fila-nome" data-lista-nome data-id="${esc(c.id)}" value="${esc(c.marca)}" placeholder="Nome da marca" aria-label="Nome da marca @${esc(arroba(c))}">
               ${pedeProduto ? `<input type="text" class="abord-fila-nome abord-fila-produto" data-lista-produto data-id="${esc(c.id)}" value="${esc(c.produto || "")}" placeholder="Produto" aria-label="Produto de @${esc(arroba(c))}">` : ""}
               <div class="abord-fila-acoes">
-                <button class="btn btn-sm" data-acao="lista-copiar" data-id="${esc(c.id)}" ${modelo ? "" : "disabled"}>${icone("clipe", 14)} Copiar e abrir</button>
+                <button class="btn btn-sm" data-acao="lista-copiar" data-id="${esc(c.id)}" ${modelo ? "" : "disabled"}>${icone("clipe", 14)} Copiar</button>
+                ${ingles ? `<button class="btn btn-sm" data-acao="lista-copiar-en" data-id="${esc(c.id)}" title="Copiar a mensagem em inglês (${esc(ingles.titulo)})" aria-label="Copiar em inglês pra @${esc(arroba(c))}">🇺🇸 EN</button>` : ""}
                 <button class="btn btn-sm btn-primario" data-acao="lista-enviei" data-id="${esc(c.id)}">Enviei</button>
                 <button class="btn-icone" data-acao="lista-remover" data-id="${esc(c.id)}" aria-label="Tirar @${esc(arroba(c))} da lista" title="Tirar da lista">${icone("x", 15)}</button>
               </div>
@@ -304,7 +318,7 @@ window.Abordagens = (() => {
         <div class="card vazio">
           <div class="vazio-icone">${icone("envio", 24)}</div>
           <h2>Lista vazia</h2>
-          <p>Cole os @ das marcas acima. Pra cada uma: <b>Copiar e abrir</b> copia a mensagem com o nome da marca e abre o perfil; você cola na DM, envia e toca em <b>Enviei</b>. A marca vai pro Controle com a data.</p>
+          <p>Cole os @ das marcas acima. Pra cada uma: <b>Copiar</b> copia a mensagem com o nome da marca e o produto; você cola na DM do perfil que já está aberto, envia e toca em <b>Enviei</b>.${perfil === "vaiterestrada" ? " Marca de fora? Use o botão <b>🇺🇸 EN</b> pra copiar em inglês." : ""} A marca vai pro Controle com a data.</p>
         </div>`}
       <p class="muted abord-dica">Pra não ter a conta bloqueada pelo Instagram: comece com 30 a 50 por dia, espalhe em blocos ao longo do dia e confira o nome de cada marca antes de copiar.</p>`;
   }
@@ -349,9 +363,9 @@ window.Abordagens = (() => {
     desenhar();
   }
 
-  async function copiarDaLista(id) {
+  async function copiarDaLista(id, emIngles = false) {
     const c = contatos.find((x) => x.id === id);
-    const modelo = modeloDaLista();
+    const modelo = emIngles ? modeloIngles() : modeloDaLista();
     if (!c || !modelo) return;
     // salva o que estiver digitado na linha antes de copiar
     const linha = (sel) => el.querySelector(`${sel}[data-id="${CSS.escape(id)}"]`)?.value.trim();
@@ -363,11 +377,11 @@ window.Abordagens = (() => {
       }));
       if (!r.erro) Object.assign(c, r.row);
     }
-    const valores = { ...lerLocal(chaveVars(), {}), marca: c.marca };
+    const valores = { ...(emIngles ? numerosEmIngles() : {}), ...lerLocal(chaveVars(), {}), marca: c.marca };
     if (c.produto) valores.produto = c.produto;
     const texto = preencher(modelo.texto, valores);
+    // só copia: o perfil da marca você já deixou aberto no Instagram
     await copiar(texto, camposDe(texto));
-    if (c.instagram) window.open(linkPerfil(arroba(c)), "_blank", "noopener");
   }
 
   async function enviouDaLista(id) {
@@ -529,6 +543,7 @@ window.Abordagens = (() => {
     if (a === "filtro") { filtro = b.dataset.v; return desenhar(); }
     if (a === "lista-add") return adicionarNaLista();
     if (a === "lista-copiar") return copiarDaLista(b.dataset.id);
+    if (a === "lista-copiar-en") return copiarDaLista(b.dataset.id, true);
     if (a === "lista-enviei") return enviouDaLista(b.dataset.id);
     if (a === "lista-remover") return removerDaLista(b.dataset.id);
     if (a === "nova-marca") return formMarca({});
