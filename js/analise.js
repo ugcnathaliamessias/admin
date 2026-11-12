@@ -276,8 +276,9 @@ window.Analise = (() => {
         ordem: -Date.now() / 1000, origem: "manual", origem_id: "", feito_em: null,
       });
       if (r.erro) { b.disabled = false; return toast(r.erro, "erro"); }
-      b.textContent = "✓ Está no Quadro";
-      toast("🗂️ Ideia foi pro Quadro, em Começar!", "ok");
+      // a ideia passa a viver no Quadro: sai da lista pra não duplicar
+      ideias.splice(i, 1);
+      await salvarConteudo("🗂️ Ideia foi pro Quadro, em Começar! (e saiu da lista)");
     }
   }
 
