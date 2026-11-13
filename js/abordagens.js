@@ -102,6 +102,8 @@ window.Abordagens = (() => {
   function proximo(c) {
     if (c.status === "pausada") return c.retomar_em ? { data: c.retomar_em, tipo: "retomar" } : null;
     if (!statusDe(c.status).ativo) return null;
+    // plataformas não aceitam follow-up: só esperar a marca responder
+    if (c.tipo === "plataforma") return null;
     const n = c.followups || 0;
     if (n >= ESPERA.length) return { data: somaDias(c.ultimo_envio, ESPERA_PAUSAR), tipo: "pausar" };
     return { data: somaDias(c.ultimo_envio, ESPERA[n]), tipo: "followup" };
@@ -457,6 +459,7 @@ window.Abordagens = (() => {
 
   function seloProximo(c) {
     const p = proximo(c);
+    if (!p && c.tipo === "plataforma" && statusDe(c.status).ativo) return `<span class="abord-selo">Aguardando a marca</span>`;
     if (!p) return `<span class="muted">-</span>`;
     const atraso = diasEntre(p.data, hoje());
     const nome = p.tipo === "retomar" ? "Retomar" : p.tipo === "pausar" ? "Sem resposta: pausar?" : `${(c.followups || 0) + 1}º follow-up`;
