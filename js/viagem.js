@@ -112,6 +112,159 @@ Podemos mandar uma proposta com o roteiro?` },
     f: { t: "Follow-up", texto: `Oi, {saudação}! Passando aqui de novo 😊 A nossa viagem pra Foz está chegando (13 a 17/12) e estamos fechando o roteiro de gravações essa semana. Ainda dá tempo de incluir o {marca}. Com quem a gente pode falar?` },
   };
 
+  // ---------- espanhol (marcas do Paraguai e da Argentina) ----------
+  const ABRE_ES = "¡Hola, {saudação}! ¿Cómo están? Soy Nath, de Vai Ter Estrada 🏕️";
+  const KIT_ES = "Nuestro media kit, con videos y números actualizados: https://vaiterestrada.github.io/midiakit/";
+  const MENSAGENS_ES = {
+    1: `${ABRE_ES}
+
+João y yo creamos contenido sobre viajes, camping y experiencias reales para un público brasileño. Entre el 13 y el 17 de diciembre vamos a Foz y a Paraguay con una misión: cambiar de celular (iPhone Pro Max) y, si se puede, llevar una MacBook y un drone para nuestros contenidos.
+
+La idea es mostrar esa compra de verdad, de principio a fin: la tienda, la atención, el precio, la garantía y el unboxing. Y nos gustaría que eso pasara en {marca}.
+
+En los últimos 30 días llegamos a {alcance} cuentas, con un público que planea y viaja de verdad. ${KIT_ES}
+
+¿Con quién podemos hablar sobre contenido e influencia?`,
+    2: `${ABRE_ES}
+
+João y yo creamos contenido sobre viajes, camping y hospedajes para un público brasileño. Entre el 13 y el 17 de diciembre vamos a estar en Foz y en Paraguay, armando una serie: "de la carpa al all inclusive en Foz".
+
+Nos encantaría contar la historia de {marca}: la llegada, la estructura, lo que está incluido y los detalles que hacen que el viaje valga la pena, justo al comienzo de las vacaciones de verano.
+
+En los últimos 30 días llegamos a {alcance} cuentas, público de {público}. ${KIT_ES}
+
+¿Con quién podemos hablar sobre contenido e influencia? Puede ser por e-mail o WhatsApp 😊`,
+    3: `${ABRE_ES}
+
+Creamos contenido de camping y viajes por carretera para un público brasileño, y entre el 13 y el 17 de diciembre vamos a estar en la región de las Cataratas. Una de las preguntas que más nos hacen es "¿dónde acampar cerca de las Cataratas?", y {marca} es uno de los lugares que más aparecen en las búsquedas.
+
+Queríamos saber si podemos pasar a grabar la estructura y mostrar cómo funciona, como hacemos en nuestros videos: la llegada, los espacios, lo que hay para quien viene en carpa o motorhome. El contenido queda también para ustedes.
+
+${KIT_ES}
+
+¿Con quién podemos hablar sobre esto?`,
+    4: `${ABRE_ES}
+
+João y yo vamos a estar en Foz entre el 13 y el 17 de diciembre, grabando una serie sobre la región para un público brasileño, y {marca} está en nuestro itinerario. Queremos mostrar la experiencia de verdad, como hacemos en nuestros videos: la llegada, el paseo y lo que hace que la visita valga la pena.
+
+En los últimos 30 días llegamos a {alcance} cuentas. ${KIT_ES}
+
+¿Tienen alguna acción con creadores de contenido? ¿Con quién podemos hablar?`,
+    5: `${ABRE_ES}
+
+João y yo vamos a estar en la región de Foz entre el 13 y el 17 de diciembre, grabando una serie sobre el viaje, y {marca} es parada obligada en nuestra lista. Queremos mostrar la experiencia completa, del ambiente al plato.
+
+${KIT_ES}
+
+¿Les interesa una alianza a cambio de contenido? ¿Con quién podemos hablar? 😊`,
+    6: `${ABRE_ES}
+
+Entre el 13 y el 17 de diciembre João y yo vamos a Foz y a Paraguay, y una duda que todo el mundo tiene es "¿cómo moverse entre Foz, Paraguay y las atracciones?". Queremos responder eso mostrando el servicio de {marca} en la práctica.
+
+En los últimos 30 días llegamos a {alcance} cuentas. ${KIT_ES}
+
+¿Con quién podemos hablar sobre contenido e influencia?`,
+    7: `¡Hola, equipo de Visit Iguassu! ¿Cómo están? Soy Nath, de Vai Ter Estrada 🏕️
+
+João y yo creamos contenido sobre viajes, camping y hospedajes, con un público brasileño adulto que planea y viaja de verdad, principalmente de São Paulo. Entre el 13 y el 17 de diciembre vamos a estar en Foz grabando una serie sobre la región: "de la carpa al all inclusive en Foz", con compras en Paraguay y el lado argentino.
+
+Vimos el proyecto Influencers Experience y nos encantaría participar, con apoyo de hospedaje y atracciones asociadas. ${KIT_ES}
+
+¿Podemos enviarles una propuesta con el itinerario?`,
+    f: `¡Hola, {saudação}! Paso por aquí de nuevo 😊 Nuestro viaje a Foz se acerca (13 al 17/12) y esta semana estamos cerrando el itinerario de grabaciones. Todavía hay tiempo de incluir a {marca}. ¿Con quién podemos hablar?`,
+  };
+
+  // ---------- inglês ----------
+  const ABRE_EN = "Hi {saudação}! How are you? This is Nath, from Vai Ter Estrada 🏕️";
+  const KIT_EN = "Our media kit, with videos and up-to-date numbers: https://vaiterestrada.github.io/midiakit/";
+  const MENSAGENS_EN = {
+    1: `${ABRE_EN}
+
+João and I create content about travel, camping and real experiences for a Brazilian audience. From December 13 to 17 we're heading to Foz do Iguaçu and Paraguay on a mission: upgrade our phones (iPhone Pro Max) and, if we can, bring home a MacBook and a drone for our content.
+
+The idea is to show this purchase for real, from start to finish: the store, the service, the price, the warranty and the unboxing. And we'd love for it to happen at {marca}.
+
+In the last 30 days we reached {alcance} accounts, with an audience that plans and actually travels. ${KIT_EN}
+
+Who could we talk to about content and influencer partnerships?`,
+    2: `${ABRE_EN}
+
+João and I create content about travel, camping and places to stay for a Brazilian audience. From December 13 to 17 we'll be in Foz do Iguaçu and Paraguay, filming a series: "from tent to all-inclusive in Foz".
+
+We'd love to tell the story of {marca}: the arrival, the facilities, what's included and the details that make the trip worth it, right at the start of the December holidays.
+
+In the last 30 days we reached {alcance} accounts, audience: {público}. ${KIT_EN}
+
+Who could we talk to about content and influencer partnerships? Email or WhatsApp works 😊`,
+    3: `${ABRE_EN}
+
+We create camping and road trip content for a Brazilian audience, and from December 13 to 17 we'll be around Iguazu Falls. One of the questions we get the most is "where can we camp near the Falls?", and {marca} is one of the places that keeps coming up.
+
+Could we stop by to film your facilities and show how everything works, the way we do in our videos: the arrival, the spaces, what's there for people coming with a tent or a motorhome? You get to keep and use the content too.
+
+${KIT_EN}
+
+Who could we talk to about this?`,
+    4: `${ABRE_EN}
+
+João and I will be in Foz do Iguaçu from December 13 to 17, filming a series about the region for a Brazilian audience, and {marca} is on our itinerary. We'd love to show the real experience, the way we do in our videos: the arrival, the tour and what makes the visit worth it.
+
+In the last 30 days we reached {alcance} accounts. ${KIT_EN}
+
+Do you work with content creators? Who could we talk to?`,
+    5: `${ABRE_EN}
+
+João and I will be in the Foz do Iguaçu area from December 13 to 17, filming a series about the trip, and {marca} is a must-stop on our list. We'd love to show the full experience, from the atmosphere to the food.
+
+${KIT_EN}
+
+Would you be open to a partnership in exchange for content? Who could we talk to? 😊`,
+    6: `${ABRE_EN}
+
+From December 13 to 17 João and I are heading to Foz do Iguaçu and Paraguay, and a question everyone has is "how do you get around between Foz, Paraguay and the attractions?". We'd love to answer it by showing {marca}'s service in practice.
+
+In the last 30 days we reached {alcance} accounts. ${KIT_EN}
+
+Who could we talk to about content and influencer partnerships?`,
+    7: `Hi Visit Iguassu team! How are you? This is Nath, from Vai Ter Estrada 🏕️
+
+João and I create content about travel, camping and places to stay, for an adult Brazilian audience that plans and actually travels, mostly from São Paulo. From December 13 to 17 we'll be in Foz do Iguaçu filming a series about the region: "from tent to all-inclusive in Foz", with shopping in Paraguay and the Argentine side.
+
+We saw the Influencers Experience project and would love to take part, with support for accommodation and partner attractions. ${KIT_EN}
+
+Could we send you a proposal with the itinerary?`,
+    f: `Hi {saudação}! Just following up 😊 Our trip to Foz is coming up (Dec 13–17) and we're finalizing our filming schedule this week. There's still time to include {marca}. Who could we talk to?`,
+  };
+
+  const IDIOMAS = [
+    { v: "pt", t: "PT", nome: "português", padrao: "pessoal" },
+    { v: "es", t: "ES", nome: "espanhol", padrao: "equipo" },
+    { v: "en", t: "EN", nome: "inglês", padrao: "there" },
+  ];
+  // o idioma fica guardado numa linha das notas ("Idioma: espanhol"); "inglês" também
+  // faz o Quadro sugerir os follow-ups em inglês
+  function idiomaDe(c) {
+    const m = String(c.notas || "").match(/^Idioma: (\S+)/m);
+    const v = m && IDIOMAS.find((i) => i.nome === m[1].replace(/\.$/, ""));
+    return v ? v.v : "pt";
+  }
+  // números do robô vêm em português: "16,9 mil", "58% mulheres, 63% entre 35 e 54 anos"
+  function numerosNo(idioma) {
+    if (idioma === "pt") return numeros;
+    const n = { ...numeros };
+    for (const k of Object.keys(n)) {
+      let v = String(n[k]);
+      if (idioma === "en") {
+        v = v.replace(/(\d+),(\d) mil/g, "$1.$2K").replace(/(\d+) mil/g, "$1K")
+          .replace(/mulheres/g, "women").replace(/homens/g, "men").replace(/entre (\d+) e (\d+) anos/g, "aged $1 to $2");
+      } else {
+        v = v.replace(/mulheres/g, "mujeres").replace(/homens/g, "hombres").replace(/entre (\d+) e (\d+) anos/g, "entre $1 y $2 años");
+      }
+      n[k] = v;
+    }
+    return n;
+  }
+
   let el = null;
   let contatos = [];
   let numeros = {};
@@ -134,15 +287,17 @@ Podemos mandar uma proposta com o roteiro?` },
     return { pri, n, prop };
   }
   const arroba = (c) => String(c.instagram || "").replace(/^@/, "");
-  function saudacao(c) {
+  function saudacao(c, idioma) {
     const nome = String(c.contato || "").split(/[·|,;]/).map((s) => s.trim())
       .find((s) => /[A-Za-zÀ-ú]/.test(s) && !/@|https?:|\d{4}/.test(s));
-    return nome || "pessoal";
+    return nome || IDIOMAS.find((i) => i.v === idioma).padrao;
   }
   function mensagem(c, qual) {
-    const m = MENSAGENS[qual];
-    const valores = { ...numeros, marca: c.marca, "saudação": saudacao(c), saudacao: saudacao(c) };
-    return m.texto.replace(/\{([^{}\n]{1,30})\}/g, (x, k) => valores[k.trim()] || x);
+    const idioma = idiomaDe(c);
+    const texto = idioma === "es" ? MENSAGENS_ES[qual] : idioma === "en" ? MENSAGENS_EN[qual] : MENSAGENS[qual].texto;
+    const s = saudacao(c, idioma);
+    const valores = { ...numerosNo(idioma), marca: c.marca, "saudação": s, saudacao: s };
+    return texto.replace(/\{([^{}\n]{1,30})\}/g, (x, k) => valores[k.trim()] || x);
   }
 
   // =================================================================
@@ -243,11 +398,14 @@ Podemos mandar uma proposta com o roteiro?` },
           <div class="viagem-marca-nome"><strong>${esc(c.marca)}</strong> <span class="chip viagem-pri-${i.pri}">${i.pri}</span> ${link} ${envio}</div>
           <div class="muted viagem-prop">${esc(i.prop || c.produto || "")}</div>
           <details class="viagem-previa">
-            <summary>Ver a mensagem (${esc(MENSAGENS[naoEnviada ? i.n : "f"].t)})</summary>
+            <summary>Ver a mensagem (${esc(MENSAGENS[naoEnviada ? i.n : "f"].t)} · ${idiomaDe(c).toUpperCase()})</summary>
             <pre>${esc(mensagem(c, naoEnviada ? i.n : "f"))}</pre>
           </details>
         </div>
         <div class="viagem-marca-acoes">
+          <div class="viagem-idiomas" role="group" aria-label="Idioma da mensagem pra ${esc(c.marca)}">
+            ${IDIOMAS.map((l) => `<button class="${idiomaDe(c) === l.v ? "ativo" : ""}" data-acao="idioma" data-id="${esc(c.id)}" data-v="${l.v}" title="Mensagem em ${l.nome}">${l.t}</button>`).join("")}
+          </div>
           <select data-status="${esc(c.id)}" aria-label="Status de ${esc(c.marca)}">
             ${STATUS.map((s) => `<option value="${s.v}" ${s.v === c.status ? "selected" : ""}>${s.t}</option>`).join("")}
           </select>
@@ -298,7 +456,14 @@ Podemos mandar uma proposta com o roteiro?` },
       await copiarTexto(texto);
       const falta = [...texto.matchAll(/\{([^{}\n]{1,30})\}/g)].map((m) => m[1]);
       const nome = MENSAGENS[b.dataset.qual].t.toLowerCase();
-      toast(falta.length ? `Copiado. Falta preencher: ${falta.join(", ")}` : `Mensagem de ${nome} copiada ✓`, falta.length ? "aviso" : "ok");
+      const lingua = IDIOMAS.find((l) => l.v === idiomaDe(c)).nome;
+      toast(falta.length ? `Copiado. Falta preencher: ${falta.join(", ")}` : `Mensagem de ${nome} copiada em ${lingua} ✓`, falta.length ? "aviso" : "ok");
+    } else if (b.dataset.acao === "idioma") {
+      const novo = IDIOMAS.find((l) => l.v === b.dataset.v);
+      if (!novo || idiomaDe(c) === novo.v) return;
+      const semIdioma = String(c.notas || "").split("\n").filter((l) => !/^Idioma: /.test(l));
+      if (novo.v !== "pt") semIdioma.push(`Idioma: ${novo.nome}`);
+      await salvar(c, { notas: semIdioma.join("\n") }, `${c.marca}: mensagens em ${novo.nome}.`);
     } else if (b.dataset.acao === "enviei") {
       const h = hoje();
       await salvar(c, {
