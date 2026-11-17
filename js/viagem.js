@@ -38,6 +38,9 @@ window.Viagem = (() => {
     { n: "6", t: "🚐 Transfer, agências e câmbio" },
   ];
 
+  // mensagem 8 (casa ou Airbnb, abordada pelo Instagram) fica no grupo do camping
+  const grupoDe = (n) => (n === "8" ? "3" : n);
+
   const STATUS = [
     { v: "a_enviar", t: "A contatar" },
     { v: "enviado", t: "Mensagem enviada" },
@@ -109,6 +112,15 @@ Eu e o João criamos conteúdo sobre viagens, camping e hospedagens, com um púb
 Vimos o projeto Influencers Experience e adoraríamos participar, com apoio de hospedagem e atrações associadas. ${KIT}
 
 Podemos mandar uma proposta com o roteiro?` },
+    8: { t: "Casa ou Airbnb (pelo Instagram)", texto: `${ABRE}
+
+Eu e o João criamos conteúdo sobre viagens, camping e hospedagens, e entre 13 e 17 de dezembro a gente vai estar em Foz do Iguaçu. Encontramos a {marca} e amamos o espaço!
+
+A gente adoraria se hospedar aí e mostrar a casa do jeito que a gente faz nos nossos vídeos: a chegada, os cantinhos, a estrutura e o que faz a estadia valer a pena. Pensamos numa parceria: um desconto ou algumas diárias em troca de um vídeo mostrando a casa, e o conteúdo fica com vocês também.
+
+${KIT}
+
+Topam conversar sobre isso? 😊` },
     f: { t: "Follow-up", texto: `Oi, {saudação}! Passando aqui de novo 😊 A nossa viagem pra Foz está chegando (13 a 17/12) e estamos fechando o roteiro de gravações essa semana. Ainda dá tempo de incluir o {marca}. Com quem a gente pode falar?` },
   };
 
@@ -171,6 +183,15 @@ João y yo creamos contenido sobre viajes, camping y hospedajes, con un público
 Vimos el proyecto Influencers Experience y nos encantaría participar, con apoyo de hospedaje y atracciones asociadas. ${KIT_ES}
 
 ¿Podemos enviarles una propuesta con el itinerario?`,
+    8: `${ABRE_ES}
+
+João y yo creamos contenido sobre viajes, camping y hospedajes para un público brasileño, y entre el 13 y el 17 de diciembre vamos a estar en la región de Foz. ¡Encontramos {marca} y nos encantó el lugar!
+
+Nos encantaría hospedarnos ahí y mostrar la casa como hacemos en nuestros videos: la llegada, los rincones, la estructura y lo que hace que la estadía valga la pena. Pensamos en una alianza: un descuento o algunas noches a cambio de un video mostrando la casa, y el contenido queda también para ustedes.
+
+${KIT_ES}
+
+¿Les gustaría conversar sobre esto? 😊`,
     f: `¡Hola, {saudação}! Paso por aquí de nuevo 😊 Nuestro viaje a Foz se acerca (13 al 17/12) y esta semana estamos cerrando el itinerario de grabaciones. Todavía hay tiempo de incluir a {marca}. ¿Con quién podemos hablar?`,
   };
 
@@ -233,6 +254,15 @@ João and I create content about travel, camping and places to stay, for an adul
 We saw the Influencers Experience project and would love to take part, with support for accommodation and partner attractions. ${KIT_EN}
 
 Could we send you a proposal with the itinerary?`,
+    8: `${ABRE_EN}
+
+João and I create content about travel, camping and places to stay for a Brazilian audience, and from December 13 to 17 we'll be in Foz do Iguaçu. We came across {marca} and loved it!
+
+We'd love to stay with you and show the place the way we do in our videos: the arrival, the little corners, the facilities and what makes the stay worth it. Our idea is a partnership: a discount or a few nights in exchange for a video showing the house, and you get to keep and use the content too.
+
+${KIT_EN}
+
+Would you be open to talking about it? 😊`,
     f: `Hi {saudação}! Just following up 😊 Our trip to Foz is coming up (Dec 13–17) and we're finalizing our filming schedule this week. There's still time to include {marca}. Who could we talk to?`,
   };
 
@@ -354,7 +384,7 @@ Could we send you a proposal with the itinerary?`,
   function blocoMarcas() {
     const lista = contatos.filter((c) => {
       const i = info(c);
-      if (filtroTipo !== "todos" && i.n !== filtroTipo) return false;
+      if (filtroTipo !== "todos" && grupoDe(i.n) !== filtroTipo) return false;
       if (filtroStatus === "contatar") return c.status === "a_enviar";
       if (filtroStatus === "andamento") return ["enviado", ...RESPONDEU].includes(c.status);
       if (filtroStatus === "fechadas") return c.status === "fechou";
@@ -372,7 +402,7 @@ Could we send you a proposal with the itinerary?`,
         </select>
       </div>`;
     const grupos = TIPOS.map((t) => {
-      const doTipo = lista.filter((c) => info(c).n === t.n)
+      const doTipo = lista.filter((c) => grupoDe(info(c).n) === t.n)
         .sort((a, b) => info(a).pri.localeCompare(info(b).pri) || a.marca.localeCompare(b.marca));
       if (!doTipo.length) return "";
       return `<h3 class="viagem-grupo">${t.t} <span class="muted">(${doTipo.length})</span></h3>
