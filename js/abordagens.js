@@ -157,8 +157,12 @@ window.Abordagens = (() => {
     return partes.join(", ");
   }
   async function carregarNumerosVte() {
-    numerosAuto = {};
-    if (perfil !== "vaiterestrada" || !Dados.lerVte) return;
+    numerosAuto = perfil === "vaiterestrada" ? await numerosVte() : {};
+  }
+  // números do robô (30 dias), já formatados em português
+  async function numerosVte() {
+    const numeros = {};
+    if (!Dados.lerVte) return numeros;
     try {
       const d = await Dados.lerVte();
       const ig = d?.instagram || {};
@@ -171,9 +175,39 @@ window.Abordagens = (() => {
         seguidores: ig.perfil?.seguidores && formatarMil(ig.perfil.seguidores),
         "público": resumoPublico(ins.publico),
       };
-      for (const k of CAMPOS_AUTO) if (n[k]) numerosAuto[k] = n[k];
+      for (const k of CAMPOS_AUTO) if (n[k]) numeros[k] = n[k];
     } catch { /* sem números: os campos ficam pra preencher à mão */ }
+    return numeros;
   }
+
+  // ---------- idioma e saudação ----------
+  // marca abordada em inglês: as notas falam "inglês" / "English" (o "Enviei" do botão EN anota isso)
+  const idiomaDe = (c) => (/ingl[eê]s|english/i.test(String(c?.notas || "")) ? "en" : "pt");
+  // nome de quem vai ler a mensagem: "Liana · marketing@..." → "Liana";
+  // só e-mail/telefone → "pessoal da Marca" (ou "Marca team" em inglês)
+  function nomeContato(c, idioma) {
+    const partes = String(c?.contato || "").split(/[·|,;]/).map((s) => s.trim()).filter(Boolean);
+    const nome = partes
+      .map((s) => s.replace(/\s*\([^)]*\)\s*$/, "").trim())
+      .find((s) => /[A-Za-zÀ-ú]/.test(s) && !/@|https?:|wa\.me|whats|\d{4}/i.test(s) && !/^(e-?mail|marketing|time|sac|instagram)$/i.test(s));
+    if (nome) return nome;
+    return idioma === "en" ? `${c?.marca || ""} team`.trim() : `pessoal da ${c?.marca || "marca"}`;
+  }
+  // mês do roteiro: o atual até o dia 20, depois o próximo
+  const MESES = { pt: ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"],
+    en: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"] };
+  function mesDoRoteiro(idioma) {
+    const d = new Date();
+    const i = d.getDate() > 20 ? (d.getMonth() + 1) % 12 : d.getMonth();
+    return MESES[idioma === "en" ? "en" : "pt"][i];
+  }
+  // valores que entram sozinhos numa mensagem pra essa marca
+  const valoresDaMarca = (c, idioma) => {
+    const mes = mesDoRoteiro(idioma);
+    return { marca: c.marca, produto: c.produto, contato: nomeContato(c, idioma), "mês": mes, mes, data: dataBr(c.ultimo_envio) };
+  };
+  const preencherCom = (texto, valores) => String(texto || "").replace(RE_CAMPO, (m, k) => valores[k.trim()] || m);
+  const followupsDo = (lista, idioma) => lista.filter((m) => m.tipo === "followup" && (idioma === "en") === ehIngles(m));
 
   // =================================================================
   // TELA
@@ -243,9 +277,10 @@ window.Abordagens = (() => {
   const modelosPrimeiro = () => modelos.filter((m) => ehPrimeiro(m.tipo) && !ehIngles(m));
   const modeloIngles = () => (perfil === "vaiterestrada" ? modelos.find((m) => ehPrimeiro(m.tipo) && ehIngles(m)) || null : null);
   // "24,3 mil" → "24.3K" pros números automáticos no texto em inglês
-  function numerosEmIngles() {
+  const numerosEmIngles = () => emIngles(numerosAuto);
+  function emIngles(numeros) {
     const out = {};
-    for (const [k, v] of Object.entries(numerosAuto)) {
+    for (const [k, v] of Object.entries(numeros)) {
       const m = String(v).match(/^([\d.,]+) mil$/);
       out[k] = m ? `${m[1].replace(",", ".")}K` : v;
     }
@@ -384,13 +419,19 @@ window.Abordagens = (() => {
     const texto = preencher(modelo.texto, valores);
     // só copia: o perfil da marca você já deixou aberto no Instagram
     await copiar(texto, camposDe(texto));
+    idiomaCopiado[id] = emIngles ? "en" : "pt";
   }
+  // idioma da última mensagem copiada na lista (pro "Enviei" anotar quando for inglês)
+  const idiomaCopiado = {};
 
   async function enviouDaLista(id) {
     const c = contatos.find((x) => x.id === id);
     if (!c) return;
+    // mandou em inglês: anota, assim os follow-ups dessa marca já abrem em inglês
+    const notaIngles = idiomaCopiado[id] === "en" && idiomaDe(c) !== "en" ? `${dataBr(hoje())}: primeira mensagem em inglês.` : "";
     const r = await Dados.salvarAbord("abord_contatos", limparContato({
       ...c, status: "enviado", primeiro_envio: hoje(), ultimo_envio: hoje(), followups: 0,
+      ...(notaIngles ? { notas: c.notas ? `${c.notas}\n${notaIngles}` : notaIngles } : {}),
     }));
     if (r.erro) return toast(r.erro, "erro");
     Object.assign(c, r.row);
@@ -936,9 +977,12 @@ window.Abordagens = (() => {
 
   function janelaFollowup(c) {
     const p0 = proximo(c);
-    const fus = modelos.filter((m) => m.tipo === "followup");
+    const temIngles = modelos.some((m) => m.tipo === "followup" && ehIngles(m));
+    let idioma = temIngles ? idiomaDe(c) : "pt";
+    let fus = followupsDo(modelos, idioma);
     const sugerida = situacaoSugerida(c);
     let escolhido = fus.find((m) => m.situacao === sugerida) || fus[0];
+    const opcoesModelo = () => fus.map((m) => `<option value="${esc(m.id)}" ${m === escolhido ? "selected" : ""}>${esc(m.titulo)}${m.situacao === sugerida ? " (sugerida)" : ""}</option>`).join("");
     const pausar = p0?.tipo === "pausar";
     const retomar = p0?.tipo === "retomar";
     const titulo = retomar ? `Retomar: ${c.marca}` : pausar ? `Sem resposta: ${c.marca}` : `${(c.followups || 0) + 1}º follow-up: ${c.marca}`;
@@ -950,8 +994,11 @@ window.Abordagens = (() => {
           <p class="alerta alerta-atencao">Os 2 follow-ups já foram e a marca não respondeu. Melhor parar de mandar mensagem e retomar mais pra frente.</p>
           <label class="campo"><span class="rotulo">Retomar contato em</span>
             <input type="date" data-retomar value="${somaDias(hoje(), RETOMAR_PADRAO)}"></label>` : fus.length ? `
+          ${temIngles ? `<div class="abord-perfis" role="group" aria-label="Idioma" style="margin-bottom:10px">
+            <button type="button" class="abord-perfil ${idioma === "pt" ? "ativo" : ""}" data-idioma="pt">🇧🇷 Português</button>
+            <button type="button" class="abord-perfil ${idioma === "en" ? "ativo" : ""}" data-idioma="en">🇺🇸 English</button></div>` : ""}
           <label class="campo"><span class="rotulo">Mensagem</span>
-            <select data-modelo>${fus.map((m) => `<option value="${esc(m.id)}" ${m === escolhido ? "selected" : ""}>${esc(m.titulo)}${m.situacao === sugerida ? " (sugerida)" : ""}</option>`).join("")}</select></label>
+            <select data-modelo>${opcoesModelo()}</select></label>
           <div class="abord-campos" data-campos></div>
           <div class="abord-previa-cab"><span class="rotulo">Como vai ficar</span><span class="abord-contador" data-contador></span></div>
           <div class="abord-previa" data-previa></div>` : `
@@ -969,12 +1016,25 @@ window.Abordagens = (() => {
       let p = null;
       if (!pausar && fus.length) {
         p = montarPreenchimento(fundo, () => escolhido.texto, () => LIMITE_DM, {
-          marca: c.marca, produto: c.produto, contato: c.contato, data: dataBr(c.ultimo_envio),
+          ...(idioma === "en" ? numerosEmIngles() : {}), ...valoresDaMarca(c, idioma),
         });
         fundo.querySelector("[data-modelo]").addEventListener("change", (ev) => {
           escolhido = fus.find((m) => m.id === ev.target.value);
           p.redesenhar();
         });
+        // troca português ↔ inglês: modelos, saudação, mês e números no formato do idioma
+        fundo.querySelectorAll("[data-idioma]").forEach((b) => b.addEventListener("click", () => {
+          const novo = b.dataset.idioma;
+          const lista = followupsDo(modelos, novo);
+          if (novo === idioma) return;
+          if (!lista.length) return toast("Ainda não tem follow-up nesse idioma. Crie na aba Follow-ups.", "aviso");
+          idioma = novo; fus = lista;
+          escolhido = fus.find((m) => m.situacao === sugerida) || fus[0];
+          fundo.querySelectorAll("[data-idioma]").forEach((x) => x.classList.toggle("ativo", x.dataset.idioma === idioma));
+          fundo.querySelector("[data-modelo]").innerHTML = opcoesModelo();
+          Object.assign(p.valores, idioma === "en" ? numerosEmIngles() : numerosAuto, valoresDaMarca(c, idioma));
+          p.redesenhar();
+        }));
         fundo.querySelector("[data-copiar]").addEventListener("click", () => { p.lembrar(); copiar(p.final(), p.faltando()); });
       }
       const salvar = async (mudancas, msg) => {
@@ -1043,5 +1103,28 @@ window.Abordagens = (() => {
     return Dados.salvarAbord("abord_contatos", row);
   }
 
-  return { render, pendentesHoje, acoesPendentes, registrarAcao };
+  // Mensagem de follow-up pronta pra um cartão do Quadro (mesma regra da janela de follow-up):
+  // modelo sugerido pro momento da marca, no idioma pedido (ou o da marca), com tudo preenchido
+  async function mensagemFollowup(perfilDaMarca, id, idiomaPedido) {
+    const [mods, lista] = await Promise.all([
+      Dados.listarAbord("abord_modelos", perfilDaMarca),
+      Dados.listarAbord("abord_contatos", perfilDaMarca),
+    ]);
+    const c = (lista || []).find((x) => x.id === id);
+    if (!c) return { erro: "Não achei essa marca em Marcas & prospecção." };
+    const temIngles = (mods || []).some((m) => m.tipo === "followup" && ehIngles(m));
+    const idioma = temIngles ? (idiomaPedido || idiomaDe(c)) : "pt";
+    const fus = followupsDo(mods || [], idioma);
+    const sug = situacaoSugerida(c);
+    const m = fus.find((x) => x.situacao === sug) || fus[0];
+    const px = proximo(c);
+    const base = { marca: c.marca, idioma, temIngles, tipo: px?.tipo || "followup" };
+    if (px?.tipo === "pausar") return { ...base, texto: "", aviso: "Os 2 follow-ups já foram e a marca não respondeu: o melhor é pausar e retomar mais pra frente." };
+    if (!m) return { ...base, texto: "", aviso: "Ainda não tem modelo de follow-up nesse perfil." };
+    const numeros = perfilDaMarca === "vaiterestrada" ? await numerosVte() : {};
+    const texto = preencherCom(m.texto, { ...(idioma === "en" ? emIngles(numeros) : numeros), ...valoresDaMarca(c, idioma) });
+    return { ...base, modelo: m.titulo, texto, faltando: camposDe(texto) };
+  }
+
+  return { render, pendentesHoje, acoesPendentes, registrarAcao, mensagemFollowup };
 })();

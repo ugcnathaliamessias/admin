@@ -283,6 +283,7 @@ window.Quadro = (() => {
       <form class="modal">
         ${cab(auto ? "🤖 Cartão automático" : "✏️ Cartão")}
         ${auto ? `<p class="alerta alerta-atencao" style="margin-top:-4px">Esse cartão veio de Marcas &amp; prospecção. Quando você mandar a mensagem e registrar lá, ele vai sozinho pra Concluído.</p>` : ""}
+        ${c.origem === "followup" ? `<div class="qd-msg" data-msg><p class="muted">Carregando a mensagem...</p></div>` : ""}
         <label class="campo"><span class="rotulo">O que fazer</span><input type="text" name="titulo" maxlength="140" required value="${esc(c.titulo)}"></label>
         <div class="linha-2">
           <label class="campo"><span class="rotulo">Coluna</span><select name="coluna">${COLUNAS.map((x) => `<option value="${x.v}" ${c.coluna === x.v ? "selected" : ""}>${x.t}</option>`).join("")}</select></label>
@@ -305,6 +306,7 @@ window.Quadro = (() => {
         </div>
       </form>`, (fundo, fechar) => {
       const f = fundo.querySelector("form");
+      if (c.origem === "followup") mostrarMensagem(c, fundo.querySelector("[data-msg]"), fechar);
       fundo.querySelector("[data-ir]")?.addEventListener("click", () => {
         // abre Marcas & prospecção já no perfil do cartão
         if (c.perfil) { try { localStorage.setItem("painel_abord_perfil", JSON.stringify(c.perfil)); } catch { /* nada */ } }
@@ -343,6 +345,44 @@ window.Quadro = (() => {
         fechar(); desenhar(false);
       });
     });
+  }
+
+  // 🤖 cartão de follow-up: a mensagem já pronta (com botão de idioma), pra copiar sem sair do Quadro
+  async function mostrarMensagem(c, caixa, fechar, idioma) {
+    if (!caixa || typeof Abordagens?.mensagemFollowup !== "function") return;
+    const [id] = String(c.origem_id).split(":");
+    const r = await Abordagens.mensagemFollowup(c.perfil, id, idioma);
+    if (!caixa.isConnected) return;
+    if (r.erro) { caixa.innerHTML = `<p class="muted">${esc(r.erro)}</p>`; return; }
+    if (!r.texto) { caixa.innerHTML = r.aviso ? `<p class="muted">${esc(r.aviso)}</p>` : ""; return; }
+    caixa.innerHTML = `
+      <div class="qd-msg-cab">
+        <span class="rotulo">Mensagem pronta${r.modelo ? ` · ${esc(r.modelo.replace(/\s*\(english\)\s*/i, ""))}` : ""}</span>
+        ${r.temIngles ? `<div class="abord-perfis" role="group" aria-label="Idioma">
+          <button type="button" class="abord-perfil ${r.idioma === "pt" ? "ativo" : ""}" data-idioma="pt">🇧🇷 PT</button>
+          <button type="button" class="abord-perfil ${r.idioma === "en" ? "ativo" : ""}" data-idioma="en">🇺🇸 EN</button></div>` : ""}
+      </div>
+      <textarea class="qd-msg-texto" rows="6" data-msg-texto aria-label="Mensagem de follow-up">${esc(r.texto)}</textarea>
+      ${r.faltando?.length ? `<p class="muted abord-dica">Falta preencher: ${r.faltando.map((k) => `{${esc(k)}}`).join(", ")}. Dá pra editar aqui mesmo antes de copiar.</p>` : ""}
+      <div class="qd-msg-acoes">
+        <button type="button" class="btn btn-sm" data-msg-copiar>📋 Copiar</button>
+        <button type="button" class="btn btn-sm btn-primario" data-msg-enviei>✅ Enviei</button>
+      </div>`;
+    caixa.querySelectorAll("[data-idioma]").forEach((b) => b.addEventListener("click", () => {
+      if (b.dataset.idioma === r.idioma) return;
+      caixa.innerHTML = `<p class="muted">Trocando o idioma...</p>`;
+      mostrarMensagem(c, caixa, fechar, b.dataset.idioma);
+    }));
+    caixa.querySelector("[data-msg-copiar]").addEventListener("click", async () => {
+      const texto = caixa.querySelector("[data-msg-texto]").value;
+      try { await navigator.clipboard.writeText(texto); } catch {
+        const t = caixa.querySelector("[data-msg-texto]"); t.select();
+        try { document.execCommand("copy"); } catch { /* nada */ }
+      }
+      toast(/\{[^{}\n]{1,30}\}/.test(texto) ? "Copiado, mas ainda tem campo entre chaves pra preencher." : "Mensagem copiada. É só colar e enviar.", /\{/.test(texto) ? "aviso" : "ok");
+    });
+    // mesma pergunta de arrastar pra Concluído: registra o follow-up em Marcas & prospecção
+    caixa.querySelector("[data-msg-enviei]").addEventListener("click", () => { fechar(); moverPara(c, "feito"); });
   }
 
   function janelaCalendario(c) {
