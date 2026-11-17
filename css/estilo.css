@@ -1145,3 +1145,7 @@ a.aba, a.vte-aba { text-decoration: none; display: inline-block; }
 .viagem-previa { margin-top: 6px; font-size: 13px; }
 .viagem-previa summary { cursor: pointer; color: var(--destaque); font-weight: 600; }
 .viagem-previa pre { white-space: pre-wrap; font: inherit; font-size: 13px; margin: 8px 0 0; padding: 10px 12px; border-radius: var(--raio-sm); background: var(--superficie-2); color: var(--texto); }
+.viagem-idiomas { display: inline-flex; border: 1px solid var(--borda); border-radius: 999px; overflow: hidden; }
+.viagem-idiomas button { font: inherit; font-size: 12px; font-weight: 700; padding: 5px 10px; border: 0; background: var(--superficie); color: var(--texto-2); cursor: pointer; }
+.viagem-idiomas button + button { border-left: 1px solid var(--borda); }
+.viagem-idiomas button.ativo { background: var(--destaque); color: #fff; }
