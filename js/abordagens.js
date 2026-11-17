@@ -96,6 +96,9 @@ window.Abordagens = (() => {
   const statusDe = (v) => STATUS.find((s) => s.v === v) || STATUS[1];
   const arroba = (c) => String(c.instagram || "").replace(/^@/, "");
   const linkPerfil = (h) => `https://www.instagram.com/${encodeURIComponent(h)}/`;
+  // marcas do projeto da viagem (Instagram › 🇵🇾 Viagem Paraguai) não entram na Lista do dia
+  const daViagem = (c) => /Viagem Foz\/Paraguai/.test(String(c?.notas || "").split("\n")[0]);
+  const naFila = (c) => c.status === "a_enviar" && !daViagem(c);
 
   // ---------- follow-up ----------
   // Devolve a próxima data de ação: follow-up, pausar ou retomar
@@ -234,7 +237,7 @@ window.Abordagens = (() => {
 
   function cabecalho() {
     const pendentes = contatos.filter(vencido).length;
-    const naLista = contatos.filter((c) => c.status === "a_enviar").length;
+    const naLista = contatos.filter(naFila).length;
     const bolinha = (n) => (n ? ` <span class="abord-bolinha">${n}</span>` : "");
     const abas = `
       <div class="abas abas-sub" role="tablist">
@@ -294,7 +297,7 @@ window.Abordagens = (() => {
 
   function telaLista() {
     // Marcas de Black Friday primeiro; depois pela ordem em que entraram
-    const fila = contatos.filter((c) => c.status === "a_enviar")
+    const fila = contatos.filter(naFila)
       .sort((a, b) => (ehBlack(b) - ehBlack(a)) || String(a.created_at).localeCompare(String(b.created_at)));
     const enviadasHoje = contatos.filter((c) => c.status !== "a_enviar" && c.primeiro_envio === hoje()).length;
     const meta = Number(lerLocal(CHAVE_META, 50)) || 50;
@@ -1073,7 +1076,7 @@ window.Abordagens = (() => {
     const porPerfil = await Promise.all(PERFIS.map(async (p) => ({ p, lista: await Dados.listarAbord("abord_contatos", p.v) })));
     const acoes = [], filas = [];
     for (const { p, lista } of porPerfil) {
-      filas.push({ perfil: p.v, nome: p.t, fila: lista.filter((c) => c.status === "a_enviar").length });
+      filas.push({ perfil: p.v, nome: p.t, fila: lista.filter(naFila).length });
       for (const c of lista) {
         if (c.status === "a_enviar") continue;
         const px = proximo(c);
@@ -1126,5 +1129,5 @@ window.Abordagens = (() => {
     return { ...base, modelo: m.titulo, texto, faltando: camposDe(texto) };
   }
 
-  return { render, pendentesHoje, acoesPendentes, registrarAcao, mensagemFollowup };
+  return { render, pendentesHoje, acoesPendentes, registrarAcao, mensagemFollowup, numerosVte };
 })();

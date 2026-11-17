@@ -84,7 +84,7 @@ window.VaiTerEstrada = (() => {
   // =================================================================
   // TELA (abre pelo botão "Vai Ter Estrada" no Instagram e no Portfólio)
   // =================================================================
-  const abrirInstagram = (alvo, sub) => render(alvo, sub === "analise" ? "analise" : "metricas");
+  const abrirInstagram = (alvo, sub) => render(alvo, ["analise", "viagem"].includes(sub) ? sub : "metricas");
   const abrirMidiaKit = (alvo) => render(alvo, "midiakit");
 
   async function render(alvo, qual) {
@@ -97,6 +97,11 @@ window.VaiTerEstrada = (() => {
       el.onclick = el.onchange = null;
       el.innerHTML = cabecalho() + `<div id="vte-analise"></div>`;
       return Analise.render(el.querySelector("#vte-analise"), "vaiterestrada");
+    }
+    if (qual === "viagem") {
+      el.onclick = el.onchange = null;
+      el.innerHTML = cabecalho() + `<div id="vte-viagem"></div>`;
+      return Viagem.render(el.querySelector("#vte-viagem"));
     }
     el.innerHTML = cabecalho() + `<div class="card"><p class="muted">Carregando...</p></div>`;
     const [d, h] = await Promise.all([Dados.lerVte(), Dados.historicoVte()]);
@@ -128,7 +133,8 @@ window.VaiTerEstrada = (() => {
       <div class="abas" role="tablist">
         ${ehMetricas ? `
           <a class="aba ${aba === "metricas" ? "ativa" : ""}" href="#instagram/metricas" role="tab">📊 Métricas</a>
-          <a class="aba ${aba === "analise" ? "ativa" : ""}" href="#instagram/analise" role="tab">🧭 Análise e ideias</a>` : `
+          <a class="aba ${aba === "analise" ? "ativa" : ""}" href="#instagram/analise" role="tab">🧭 Análise e ideias</a>
+          <a class="aba ${aba === "viagem" ? "ativa" : ""}" href="#instagram/viagem" role="tab">🇵🇾 Viagem Paraguai</a>` : `
           <button class="aba ativa" role="tab">🗂️ Mídia kit</button>`}
       </div>`;
   }
