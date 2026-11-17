@@ -837,6 +837,12 @@ a.aba { text-decoration: none; display: inline-flex; align-items: center; }
 .qd-escolhas .btn { justify-content: center; }
 .qd-janela-extra { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 8px; }
 .qd-janela-extra:empty { display: none; }
+/* mensagem pronta do cartão de follow-up */
+.qd-msg { border: 1px solid var(--borda); border-radius: 12px; padding: 12px; margin: 0 0 12px; background: var(--fundo, #fffbef); }
+.qd-msg:empty { display: none; }
+.qd-msg-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.qd-msg-texto { width: 100%; box-sizing: border-box; resize: vertical; font: inherit; font-size: 14px; line-height: 1.45; padding: 10px; border: 1px solid var(--borda); border-radius: 10px; background: #fff; color: var(--texto); }
+.qd-msg-acoes { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
 @media (max-width: 860px) {
   .qd-novo { grid-template-columns: 1fr 1fr; }
   .qd-novo input[name="titulo"], .qd-novo .btn { grid-column: 1 / -1; }
