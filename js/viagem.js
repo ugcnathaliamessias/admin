@@ -242,6 +242,10 @@ Podemos mandar uma proposta com o roteiro?` },
         <div class="viagem-marca-info">
           <div class="viagem-marca-nome"><strong>${esc(c.marca)}</strong> <span class="chip viagem-pri-${i.pri}">${i.pri}</span> ${link} ${envio}</div>
           <div class="muted viagem-prop">${esc(i.prop || c.produto || "")}</div>
+          <details class="viagem-previa">
+            <summary>Ver a mensagem (${esc(MENSAGENS[naoEnviada ? i.n : "f"].t)})</summary>
+            <pre>${esc(mensagem(c, naoEnviada ? i.n : "f"))}</pre>
+          </details>
         </div>
         <div class="viagem-marca-acoes">
           <select data-status="${esc(c.id)}" aria-label="Status de ${esc(c.marca)}">
@@ -293,8 +297,8 @@ Podemos mandar uma proposta com o roteiro?` },
       const texto = mensagem(c, b.dataset.qual);
       await copiarTexto(texto);
       const falta = [...texto.matchAll(/\{([^{}\n]{1,30})\}/g)].map((m) => m[1]);
-      toast(falta.length ? `Copiado. Falta preencher: ${falta.join(", ")}` : "Mensagem copiada ✓", falta.length ? "aviso" : "ok");
-      if (arroba(c)) window.open(`https://www.instagram.com/${encodeURIComponent(arroba(c))}/`, "_blank", "noopener");
+      const nome = MENSAGENS[b.dataset.qual].t.toLowerCase();
+      toast(falta.length ? `Copiado. Falta preencher: ${falta.join(", ")}` : `Mensagem de ${nome} copiada ✓`, falta.length ? "aviso" : "ok");
     } else if (b.dataset.acao === "enviei") {
       const h = hoje();
       await salvar(c, {
