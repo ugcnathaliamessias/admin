@@ -111,7 +111,11 @@ window.Abordagens = (() => {
     if (n >= ESPERA.length) return { data: somaDias(c.ultimo_envio, ESPERA_PAUSAR), tipo: "pausar" };
     return { data: somaDias(c.ultimo_envio, ESPERA[n]), tipo: "followup" };
   }
-  const vencido = (c) => { const p = proximo(c); return !!p && p.data <= hoje(); };
+  const vencido = (c) => {
+    const p = proximo(c);
+    if (p && p.tipo !== "retomar" && daViagem(c) && hoje() > "2026-12-04") return false; // viagem: sem follow-up depois de 04/12
+    return !!p && p.data <= hoje();
+  };
 
   function situacaoSugerida(c) {
     const n = c.followups || 0;
@@ -1081,6 +1085,8 @@ window.Abordagens = (() => {
         if (c.status === "a_enviar") continue;
         const px = proximo(c);
         if (!px) continue;
+        // viagem Paraguai: a partir de 05/12 não tem mais follow-up, só fechar por escrito
+        if (daViagem(c) && hoje() > "2026-12-04" && px.tipo !== "retomar") continue;
         acoes.push({ perfil: p.v, nomePerfil: p.t, id: c.id, marca: c.marca, tipo: px.tipo, data: px.data, n: (c.followups || 0) + 1, status: c.status });
       }
     }

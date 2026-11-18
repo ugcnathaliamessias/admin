@@ -18,15 +18,29 @@ window.Viagem = (() => {
 
   const IDA = "2026-12-13";
   const VOLTA = "2026-12-17";
+  // Até 02/12 ainda entram marcas novas; até 04/12 tem follow-up; a partir de 05/12 só
+  // fechar por escrito. As etapas ganham ✓ sozinhas pelo que já foi feito (ou quando
+  // a data passa); as que o painel não tem como saber, a Nath marca com um toque.
+  const FIM_ABORDAGEM = "2026-12-02";
+  const FIM_FOLLOWUP = "2026-12-04";
+  const INICIO_FECHAR = "2026-12-05";
+  const ABERTAS = ["time", "conversando", "proposta"];
   const ETAPAS = [
-    { ate: "2026-11-22", t: "1ª mensagem pras prioridade A" },
-    { ate: "2026-11-26", t: "1ª mensagem pras prioridade B" },
-    { ate: "2026-12-02", t: "Follow-ups (A de 27 a 29/11, B até 02/12)" },
-    { ate: "2026-12-05", t: "Fechar tudo por escrito (entregas, datas, o que recebe)" },
-    { ate: "2026-12-12", t: "Comprar passagens e montar a agenda de gravação" },
-    { ate: VOLTA, t: "Gravar em Foz, no Paraguai e na Argentina" },
-    { ate: "2026-12-31", t: "Entregar e postar" },
+    { id: "a", ate: FIM_ABORDAGEM, t: "1ª mensagem pras prioridade A",
+      feito: (v) => !v.some((c) => c.status === "a_enviar" && info(c).pri === "A") },
+    { id: "b", ate: FIM_ABORDAGEM, t: "1ª mensagem pras prioridade B (e marcas novas que entrarem)",
+      feito: (v, h) => h > FIM_ABORDAGEM || !v.some((c) => c.status === "a_enviar" && info(c).pri !== "A") },
+    { id: "fu", ate: FIM_FOLLOWUP, t: "Follow-ups (3 e 5 dias depois da mensagem)",
+      feito: (v, h) => h > FIM_FOLLOWUP || !v.some((c) => c.status === "a_enviar" || c.status === "enviado" || (c.status === "time" && (c.followups || 0) < 2)) },
+    { id: "fechar", de: INICIO_FECHAR, ate: "2026-12-12", t: "Fechar tudo por escrito (entregas, datas, contratos, o que recebe)",
+      feito: (v, h) => h > "2026-12-12" || (h >= INICIO_FECHAR && !v.some((c) => ABERTAS.includes(c.status))) },
+    { id: "passagens", ate: "2026-12-12", t: "Comprar passagens e montar a agenda de gravação", manual: true },
+    { id: "gravar", ate: VOLTA, t: "Gravar em Foz, no Paraguai e na Argentina", manual: true },
+    { id: "entregar", ate: "2026-12-31", t: "Entregar e postar", manual: true },
   ];
+  // marcas manuais ficam numa linha própria da tabela analises (privada)
+  const PERFIL_CHECKS = "viagem-paraguai";
+  let checks = { id: null, feitos: {} };
 
   const TIPOS = [
     { n: "1", t: "📱 Lojas no Paraguai" },
@@ -336,12 +350,37 @@ Would you be open to talking about it? 😊`,
     el.onclick = aoClicar;
     el.onchange = aoMudar;
     el.innerHTML = `<div class="card"><p class="muted">Carregando a viagem...</p></div>`;
-    const [lista, nums] = await Promise.all([
+    const [lista, nums, analises] = await Promise.all([
       Dados.listarAbord("abord_contatos", "vaiterestrada"),
       Abordagens.numerosVte ? Abordagens.numerosVte() : {},
+      Dados.listar("analises").catch(() => []),
     ]);
     contatos = lista.filter(ehDaViagem);
     numeros = nums || {};
+    const linha = (Array.isArray(analises) ? analises : []).find((a) => a.perfil === PERFIL_CHECKS);
+    checks = { id: linha?.id || null, feitos: linha?.conteudo?.feitos || {} };
+    desenhar();
+  }
+
+  // follow-up vencendo (mesma regra do painel: 3 dias, depois 2)
+  const somaDias = (s, n) => { const d = paraData(s); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+  function followupVencido(c) {
+    if (!["enviado", "time", "conversando", "proposta"].includes(c.status) || c.tipo === "plataforma") return false;
+    const n = c.followups || 0;
+    if (n >= 2) return false;
+    return somaDias(c.ultimo_envio, [3, 2][n]) <= hoje();
+  }
+
+  function etapaFeita(e, h) {
+    if (e.manual) return !!checks.feitos[e.id];
+    return e.feito(contatos, h);
+  }
+
+  async function marcarEtapa(id) {
+    const feitos = { ...checks.feitos, [id]: !checks.feitos[id] };
+    const r = await Dados.salvar("analises", { ...(checks.id ? { id: checks.id } : {}), perfil: PERFIL_CHECKS, conteudo: { feitos } });
+    if (r?.erro) return toast(r.erro, "erro");
+    checks = { id: r?.row?.id || checks.id, feitos };
     desenhar();
   }
 
@@ -353,7 +392,30 @@ Would you be open to talking about it? 😊`,
   function blocoTopo() {
     const faltam = diasAte(IDA);
     const h = hoje();
-    const atual = ETAPAS.findIndex((e) => h <= e.ate);
+    const feitas = ETAPAS.map((e) => etapaFeita(e, h));
+    const atual = feitas.findIndex((f) => !f);
+    const vencidos = h <= FIM_FOLLOWUP ? contatos.filter(followupVencido).length : 0;
+    const extra = (e) => {
+      if (e.id === "a" || e.id === "b") {
+        const n = contatos.filter((c) => c.status === "a_enviar" && (e.id === "a" ? info(c).pri === "A" : info(c).pri !== "A")).length;
+        return n ? ` <span class="muted">· faltam ${n}</span>` : "";
+      }
+      if (e.id === "fu" && vencidos) return ` <span class="muted">· ${vencidos} pra fazer hoje</span>`;
+      if (e.id === "fechar" && h >= INICIO_FECHAR) {
+        const n = contatos.filter((c) => ABERTAS.includes(c.status)).length;
+        return n ? ` <span class="muted">· ${n} conversas abertas</span>` : "";
+      }
+      return "";
+    };
+    const etapas = ETAPAS.map((e, i) => {
+      const classe = feitas[i] ? "feita" : i === atual ? "agora" : "";
+      const marca = feitas[i] ? "✓" : "";
+      const botao = e.manual
+        ? `<button class="viagem-check ${feitas[i] ? "ok" : ""}" data-acao="etapa" data-etapa="${e.id}" aria-label="${feitas[i] ? "Desmarcar" : "Marcar como feito"}: ${esc(e.t)}">${marca}</button>`
+        : `<span class="viagem-check ${feitas[i] ? "ok" : ""}" aria-hidden="true">${marca}</span>`;
+      const quando = e.de ? `${dataBr(e.de)} a ${dataBr(e.ate)}` : `até ${dataBr(e.ate)}`;
+      return `<li class="${classe}">${botao}<span>${quando}</span><span class="viagem-etapa-t">${esc(e.t)}${feitas[i] ? "" : extra(e)}</span>${i === atual ? ' <span class="selo selo-ok">agora</span>' : ""}</li>`;
+    }).join("");
     const cont = (f) => contatos.filter(f).length;
     const kpis = [
       ["Marcas", contatos.length],
@@ -375,8 +437,9 @@ Would you be open to talking about it? 😊`,
         </div>
         <div class="viagem-kpis">${kpis.map(([r, v]) => `<div class="viagem-kpi"><span class="kpi-valor">${v}</span><span class="muted">${r}</span></div>`).join("")}</div>
         <ol class="viagem-etapas">
-          ${ETAPAS.map((e, i) => `<li class="${i < atual ? "feita" : i === atual ? "agora" : ""}"><span>até ${dataBr(e.ate)}</span>${esc(e.t)}${i === atual ? ' <span class="selo selo-ok">agora</span>' : ""}</li>`).join("")}
+          ${etapas}
         </ol>
+        <p class="muted viagem-meta">As etapas ganham ✓ sozinhas quando o painel vê que você já fez. As que têm quadradinho você marca com um toque.</p>
       </div>`;
   }
 
@@ -439,7 +502,7 @@ Would you be open to talking about it? 😊`,
           <select data-status="${esc(c.id)}" aria-label="Status de ${esc(c.marca)}">
             ${STATUS.map((s) => `<option value="${s.v}" ${s.v === c.status ? "selected" : ""}>${s.t}</option>`).join("")}
           </select>
-          <button class="btn btn-sm" data-acao="copiar" data-id="${esc(c.id)}" data-qual="${naoEnviada ? i.n : "f"}">📋 ${naoEnviada ? "Copiar mensagem" : "Copiar follow-up"}</button>
+          ${naoEnviada || hoje() <= FIM_FOLLOWUP ? `<button class="btn btn-sm" data-acao="copiar" data-id="${esc(c.id)}" data-qual="${naoEnviada ? i.n : "f"}">📋 ${naoEnviada ? "Copiar mensagem" : "Copiar follow-up"}</button>` : ""}
           ${naoEnviada ? `<button class="btn btn-sm btn-primario" data-acao="enviei" data-id="${esc(c.id)}">Enviei</button>` : ""}
         </div>
       </div>`;
@@ -479,6 +542,7 @@ Would you be open to talking about it? 😊`,
   async function aoClicar(ev) {
     const b = ev.target.closest("[data-acao]");
     if (!b) return;
+    if (b.dataset.acao === "etapa") return marcarEtapa(b.dataset.etapa);
     const c = contatos.find((x) => x.id === b.dataset.id);
     if (!c) return;
     if (b.dataset.acao === "copiar") {
