@@ -1156,3 +1156,5 @@ span.viagem-check { border-style: dashed; }
 .viagem-etapas li.feita .viagem-etapa-t { text-decoration: line-through; }
 .viagem-etapas li.feita { text-decoration: none; }
 .viagem-etapa-t { flex: 1 1 200px; min-width: 0; }
+.viagem-etapas li > .viagem-check { min-width: 22px; width: 22px; }
+.viagem-etapas li > span:nth-child(2) { min-width: 92px; font-weight: 600; color: var(--texto-2); }
