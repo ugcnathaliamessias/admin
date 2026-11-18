@@ -47,13 +47,14 @@ window.Viagem = (() => {
     { n: "2", t: "🏨 Hotéis e resorts" },
     { n: "3", t: "🏕️ Camping, hostel e Airbnb" },
     { n: "4", t: "🎢 Passeios e atrações" },
-    { n: "7", t: "🧭 Turismo oficial" },
+    { n: "7", t: "🧭 Turismo oficial e apps de viagem" },
     { n: "5", t: "🍽️ Onde comer" },
     { n: "6", t: "🚐 Transfer, agências e câmbio" },
   ];
 
   // mensagem 8 (casa ou Airbnb, abordada pelo Instagram) fica no grupo do camping
-  const grupoDe = (n) => (n === "8" ? "3" : n);
+  // mensagem 9 (app ou plataforma de viagem) fica no grupo do turismo
+  const grupoDe = (n) => (n === "8" ? "3" : n === "9" ? "7" : n);
 
   const STATUS = [
     { v: "a_enviar", t: "A contatar" },
@@ -135,6 +136,15 @@ A gente adoraria se hospedar aí e mostrar a casa do jeito que a gente faz nos n
 ${KIT}
 
 Topam conversar sobre isso? 😊` },
+    9: { t: "App ou plataforma de viagem", texto: `${ABRE}
+
+Eu e o João criamos conteúdo sobre viagens, camping e experiências de verdade, pra um público brasileiro que planeja e viaja de verdade. Entre 13 e 17 de dezembro a gente vai pra Foz do Iguaçu, Paraguai e o lado argentino, e queria planejar e reservar os passeios da viagem pela {marca}.
+
+A ideia é mostrar na prática como funciona: montar o roteiro, escolher e reservar os passeios (Cataratas, Macuco, Itaipu...) e contar se valeu a pena no dia. Um conteúdo que responde a dúvida de quem está planejando as férias de dezembro.
+
+Nos últimos 30 dias alcançamos {alcance} contas. ${KIT}
+
+Vocês têm um programa com criadores de conteúdo? Com quem a gente fala?` },
     f: { t: "Follow-up", texto: `Oi, {saudação}! Passando aqui de novo 😊 A nossa viagem pra Foz está chegando (13 a 17/12) e estamos fechando o roteiro de gravações essa semana. Ainda dá tempo de incluir o {marca}. Com quem a gente pode falar?` },
   };
 
@@ -206,6 +216,15 @@ Nos encantaría hospedarnos ahí y mostrar la casa como hacemos en nuestros vide
 ${KIT_ES}
 
 ¿Les gustaría conversar sobre esto? 😊`,
+    9: `${ABRE_ES}
+
+João y yo creamos contenido sobre viajes, camping y experiencias reales, para un público brasileño que planea y viaja de verdad. Entre el 13 y el 17 de diciembre vamos a Foz do Iguaçu, Paraguay y el lado argentino, y queremos planear y reservar los paseos del viaje con {marca}.
+
+La idea es mostrar en la práctica cómo funciona: armar el itinerario, elegir y reservar los paseos (Cataratas, Macuco, Itaipú...) y contar si valió la pena el día de la experiencia. Un contenido que responde la duda de quien está planeando las vacaciones de diciembre.
+
+En los últimos 30 días llegamos a {alcance} cuentas. ${KIT_ES}
+
+¿Tienen un programa con creadores de contenido? ¿Con quién podemos hablar?`,
     f: `¡Hola, {saudação}! Paso por aquí de nuevo 😊 Nuestro viaje a Foz se acerca (13 al 17/12) y esta semana estamos cerrando el itinerario de grabaciones. Todavía hay tiempo de incluir a {marca}. ¿Con quién podemos hablar?`,
   };
 
@@ -277,6 +296,15 @@ We'd love to stay with you and show the place the way we do in our videos: the a
 ${KIT_EN}
 
 Would you be open to talking about it? 😊`,
+    9: `${ABRE_EN}
+
+João and I create content about travel, camping and real experiences, for a Brazilian audience that plans and actually travels. From December 13 to 17 we're heading to Foz do Iguaçu, Paraguay and the Argentine side, and we'd love to plan and book the trip's tours with {marca}.
+
+The idea is to show how it works in practice: building the itinerary, choosing and booking the tours (Iguazu Falls, Macuco Safari, Itaipu...) and telling our audience whether it was worth it on the day. Content that answers the questions of everyone planning their December holidays.
+
+In the last 30 days we reached {alcance} accounts. ${KIT_EN}
+
+Do you have a creator program? Who could we talk to?`,
     f: `Hi {saudação}! Just following up 😊 Our trip to Foz is coming up (Dec 13–17) and we're finalizing our filming schedule this week. There's still time to include {marca}. Who could we talk to?`,
   };
 
