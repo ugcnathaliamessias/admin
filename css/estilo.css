@@ -1149,3 +1149,10 @@ a.aba, a.vte-aba { text-decoration: none; display: inline-block; }
 .viagem-idiomas button { font: inherit; font-size: 12px; font-weight: 700; padding: 5px 10px; border: 0; background: var(--superficie); color: var(--texto-2); cursor: pointer; }
 .viagem-idiomas button + button { border-left: 1px solid var(--borda); }
 .viagem-idiomas button.ativo { background: var(--destaque); color: #fff; }
+.viagem-check { flex: none; width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid var(--borda-forte); background: var(--superficie); display: inline-grid; place-items: center; font-size: 13px; font-weight: 800; color: #fff; padding: 0; }
+button.viagem-check { cursor: pointer; }
+span.viagem-check { border-style: dashed; }
+.viagem-check.ok { background: var(--sucesso); border: 1.5px solid var(--sucesso); }
+.viagem-etapas li.feita .viagem-etapa-t { text-decoration: line-through; }
+.viagem-etapas li.feita { text-decoration: none; }
+.viagem-etapa-t { flex: 1 1 200px; min-width: 0; }
