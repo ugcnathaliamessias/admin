@@ -392,11 +392,15 @@ Do you have a creator program? Who could we talk to?`,
 
   // follow-up vencendo (mesma regra do painel: 3 dias, depois 2)
   const somaDias = (s, n) => { const d = paraData(s); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
-  function followupVencido(c) {
-    if (!["enviado", "time", "conversando", "proposta"].includes(c.status) || c.tipo === "plataforma") return false;
+  function proximoFollowup(c) {
+    if (!["enviado", "time", "conversando", "proposta"].includes(c.status) || c.tipo === "plataforma") return null;
     const n = c.followups || 0;
-    if (n >= 2) return false;
-    return somaDias(c.ultimo_envio, [3, 2][n]) <= hoje();
+    if (n >= 2) return null;
+    return somaDias(c.ultimo_envio, [3, 2][n]);
+  }
+  function followupVencido(c) {
+    const d = proximoFollowup(c);
+    return !!d && d <= hoje();
   }
 
   function etapaFeita(e, h) {
@@ -428,7 +432,7 @@ Do you have a creator program? Who could we talk to?`,
         const n = contatos.filter((c) => c.status === "a_enviar" && (e.id === "a" ? info(c).pri === "A" : info(c).pri !== "A")).length;
         return n ? ` <span class="muted">· faltam ${n}</span>` : "";
       }
-      if (e.id === "fu" && vencidos) return ` <span class="muted">· ${vencidos} pra fazer hoje</span>`;
+      if (e.id === "fu" && vencidos) return ` <button class="viagem-link" data-acao="ver-followups">· ${vencidos} pra fazer hoje: ver quais</button>`;
       if (e.id === "fechar" && h >= INICIO_FECHAR) {
         const n = contatos.filter((c) => ABERTAS.includes(c.status)).length;
         return n ? ` <span class="muted">· ${n} conversas abertas</span>` : "";
@@ -476,6 +480,7 @@ Do you have a creator program? Who could we talk to?`,
     const lista = contatos.filter((c) => {
       const i = info(c);
       if (filtroTipo !== "todos" && grupoDe(i.n) !== filtroTipo) return false;
+      if (filtroStatus === "followup") return hoje() <= FIM_FOLLOWUP && followupVencido(c);
       if (filtroStatus === "contatar") return c.status === "a_enviar";
       if (filtroStatus === "andamento") return ["enviado", ...RESPONDEU].includes(c.status);
       if (filtroStatus === "fechadas") return c.status === "fechou";
@@ -488,7 +493,7 @@ Do you have a creator program? Who could we talk to?`,
           ${TIPOS.map((t) => `<option value="${t.n}" ${filtroTipo === t.n ? "selected" : ""}>${t.t}</option>`).join("")}
         </select>
         <select data-filtro="status" aria-label="Status">
-          ${[["todos", "Todos os status"], ["contatar", "A contatar"], ["andamento", "Em andamento"], ["fechadas", "Fechadas"]]
+          ${[["todos", "Todos os status"], ...(hoje() <= FIM_FOLLOWUP ? [["followup", `📨 Precisam de follow-up hoje (${contatos.filter(followupVencido).length})`]] : []), ["contatar", "A contatar"], ["andamento", "Em andamento"], ["fechadas", "Fechadas"]]
             .map(([v, t]) => `<option value="${v}" ${filtroStatus === v ? "selected" : ""}>${t}</option>`).join("")}
         </select>
       </div>`;
@@ -513,11 +518,18 @@ Do you have a creator program? Who could we talk to?`,
     const link = h ? `<a href="https://www.instagram.com/${encodeURIComponent(h)}/" target="_blank" rel="noopener">@${esc(h)}</a>` : `<span class="muted">sem Instagram</span>`;
     const naoEnviada = c.status === "a_enviar";
     const envio = naoEnviada ? "" : `<span class="muted">· 1ª msg ${dataBr(c.primeiro_envio)}${c.followups ? ` · ${c.followups} follow-up${c.followups > 1 ? "s" : ""}` : ""}</span>`;
+    const pf = hoje() <= FIM_FOLLOWUP ? proximoFollowup(c) : null;
+    const fuVencido = !!pf && pf <= hoje();
+    const selo = !pf ? "" : fuVencido
+      ? `<span class="chip viagem-fu-hoje">📨 follow-up ${pf < hoje() ? `atrasado (desde ${dataBr(pf)})` : "hoje"}</span>`
+      : `<span class="muted viagem-fu-prox">próximo follow-up ${dataBr(pf)}</span>`;
+    const contato = c.contato ? `<div class="viagem-contato">👤 ${esc(c.contato)}${c.status === "time" ? " <span class=\"muted\">(mandar o follow-up aqui, não na DM)</span>" : ""}</div>` : "";
     return `
-      <div class="card viagem-marca ${c.status === "fechou" ? "fechada" : ""}">
+      <div class="card viagem-marca ${c.status === "fechou" ? "fechada" : ""} ${fuVencido ? "viagem-marca-fu" : ""}">
         <div class="viagem-marca-info">
-          <div class="viagem-marca-nome"><strong>${esc(c.marca)}</strong> <span class="chip viagem-pri-${i.pri}">${i.pri}</span> ${link} ${envio}</div>
+          <div class="viagem-marca-nome"><strong>${esc(c.marca)}</strong> <span class="chip viagem-pri-${i.pri}">${i.pri}</span> ${link} ${envio} ${selo}</div>
           <div class="muted viagem-prop">${esc(i.prop || c.produto || "")}</div>
+          ${contato}
           <details class="viagem-previa">
             <summary>Ver a mensagem (${esc(MENSAGENS[naoEnviada ? i.n : "f"].t)} · ${idiomaDe(c).toUpperCase()})</summary>
             <pre>${esc(mensagem(c, naoEnviada ? i.n : "f"))}</pre>
@@ -532,6 +544,7 @@ Do you have a creator program? Who could we talk to?`,
           </select>
           ${naoEnviada || hoje() <= FIM_FOLLOWUP ? `<button class="btn btn-sm" data-acao="copiar" data-id="${esc(c.id)}" data-qual="${naoEnviada ? i.n : "f"}">📋 ${naoEnviada ? "Copiar mensagem" : "Copiar follow-up"}</button>` : ""}
           ${naoEnviada ? `<button class="btn btn-sm btn-primario" data-acao="enviei" data-id="${esc(c.id)}">Enviei</button>` : ""}
+          ${fuVencido ? `<button class="btn btn-sm btn-primario" data-acao="enviei-fu" data-id="${esc(c.id)}">Enviei o follow-up</button>` : ""}
         </div>
       </div>`;
   }
@@ -571,6 +584,11 @@ Do you have a creator program? Who could we talk to?`,
     const b = ev.target.closest("[data-acao]");
     if (!b) return;
     if (b.dataset.acao === "etapa") return marcarEtapa(b.dataset.etapa);
+    if (b.dataset.acao === "ver-followups") {
+      filtroStatus = "followup"; filtroTipo = "todos"; desenhar();
+      el.querySelector(".viagem-cab-secao")?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
     const c = contatos.find((x) => x.id === b.dataset.id);
     if (!c) return;
     if (b.dataset.acao === "copiar") {
@@ -592,6 +610,13 @@ Do you have a creator program? Who could we talk to?`,
         status: "enviado", primeiro_envio: h, ultimo_envio: h, followups: 0,
         notas: `${c.notas}\n${dataBr(h)}: 1ª mensagem (aba Viagem Paraguai).`,
       }, `${c.marca} foi pro Controle. O follow-up aparece no Quadro.`);
+    } else if (b.dataset.acao === "enviei-fu") {
+      const h = hoje();
+      const n = (c.followups || 0) + 1;
+      await salvar(c, {
+        followups: n, ultimo_envio: h,
+        notas: `${c.notas}\n${dataBr(h)}: ${n}º follow-up (aba Viagem Paraguai).`,
+      }, n >= 2 ? `${c.marca}: 2º follow-up registrado. Se não responder, dá pra pausar.` : `${c.marca}: follow-up registrado. O próximo é em 2 dias, se não responder.`);
     }
   }
 
