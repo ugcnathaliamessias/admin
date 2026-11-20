@@ -1158,3 +1158,8 @@ span.viagem-check { border-style: dashed; }
 .viagem-etapa-t { flex: 1 1 200px; min-width: 0; }
 .viagem-etapas li > span.viagem-check, .viagem-etapas li > button.viagem-check { min-width: 22px; width: 22px; }
 .viagem-etapas li > span:nth-child(2) { min-width: 92px; font-weight: 600; color: var(--texto-2); }
+.viagem-fu-hoje { background: var(--atencao-claro); color: #854D0E; border-color: #FDE68A; font-weight: 700; }
+.viagem-fu-prox { font-size: 12.5px; }
+.viagem-marca-fu { border-color: #FDE68A; box-shadow: inset 4px 0 0 #F59E0B; }
+.viagem-contato { font-size: 13px; margin-top: 4px; }
+.viagem-link { font: inherit; font-size: 13px; font-weight: 700; color: var(--destaque); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
